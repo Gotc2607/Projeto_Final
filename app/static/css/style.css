@@ -1,0 +1,54 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-image: url(fundo_noxus.webp);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-family: Arial, sans-serif;
+}
+
+/* Estilo do contêiner de login */
+.login-container {
+    background-color: grey;
+    padding: 20px;
+    border: 8px solid #332;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    text-align: center;
+}
+
+.login-container img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 15px;}
+
+/* Estilo dos campos de entrada */
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 70%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #333;
+    border-radius: 4px;
+}
+
+/* Botão de login */
+.login-container input[type="submit"] {
+    background-color: red;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 50%;
+}
+
+/* Botão ao passar o mouse */
+.login-container input[type="submit"]:hover {
+    background-color: #332;
+}
