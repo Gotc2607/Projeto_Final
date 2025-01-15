@@ -4,7 +4,7 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-image: url(fundo_noxus.webp);
+    background-image: url(static/img/fundo_noxus);
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
