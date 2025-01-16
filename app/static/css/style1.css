@@ -4,7 +4,7 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-image: url(static/img/fundo_noxus);
+    background-image: url(../img/fundo_noxus.webp);
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -42,6 +42,7 @@ body {
     background-color: red;
     color: white;
     padding: 10px 15px;
+    margin-bottom: 10px ;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -51,4 +52,12 @@ body {
 /* Botão ao passar o mouse */
 .login-container input[type="submit"]:hover {
     background-color: #332;
+}
+
+.login-container a{
+    padding: 10px;
+    margin: 10px;
+    text-decoration: none;
+    color: red;
+
 }

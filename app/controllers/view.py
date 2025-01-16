@@ -5,7 +5,8 @@ class Application():
 
     def __init__(self):
         self.pages = {
-            'index' : self.index
+            'index' : self.index,
+            'cadastro' :self.cadastro
 
         }
 
@@ -18,5 +19,8 @@ class Application():
 
     def index(self):
         #renderiza a pagina index
-        return template('app/views/html/index')
+        return template('app/views/html/index.html')
+
+    def cadastro(self):
+        return template('app/viwes/html/tela_cadastro.html')
 
