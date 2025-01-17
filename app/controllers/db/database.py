@@ -1,7 +1,7 @@
 import sqlite3
-import bcripty
+import bcrypt
 
-class banco_de_dados2:
+class banco_de_dados:
 
     def __init__(self, db_name):
         self.db_name = db_name
@@ -16,23 +16,16 @@ class banco_de_dados2:
             saldo REAl DEFAULT 0
         );
         ''')
-        #verificar se já existe esse nome de usuario
-    def verificar_nome_usuari(self, usuario):
-        self.cursor.execute("SELECT * FROM banco_de_dados WHERE usuario = ?", (usuario,))
-        resultado = self.cursor.fetchone()
-        if resultado:
-            return True
-        else:
-            return False
        
         #verificar se a senha e o nome de usuario então certos
     def verificar_usuario(self, usuario, senha):
-        self.cursor.execute("SELECT * FROM banco_de_dados WHERE usuario = ? AND senha = ?", (usuario, senha))
+        self.cursor.execute("SELECT senha FROM banco_de_dados WHERE usuario = ?", (usuario,))
         resultado = self.cursor.fetchone()
        
         if resultado and bcrypt.checkpw(senha.encode(), resultado[0]):
             return True
-        return False
+        else:
+            return False
 
     def adicionar_usuario(self, usuario, senha):
         """Adiciona um novo usuário com senha criptografada."""
