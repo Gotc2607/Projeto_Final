@@ -3,10 +3,11 @@ from app.controllers.datbase import Banco
 
 class Usuario:
     
-    def __init__(self, usuario, email, saldo=0.0):
+    def __init__(self, usuario, email, saldo=0.0, fatura=0.0):
         self.usuario = usuario
         self.email = email
         self.saldo = saldo
+        self.fatura = fatura
 
 
 class UsuarioModel:
@@ -32,7 +33,9 @@ class UsuarioModel:
             print('verificando senha')
             saldo = self.db.obter_saldo(usuario)
             saldo_formatado = "{:.2f}".format(saldo)
-            return True, Usuario(usuario=dados_usuario[1], email=dados_usuario[3], saldo=saldo_formatado)
+            fatura = self.db.obter_fatura(usuario)
+            fatura_formatada = "{:.2f}".format(fatura)
+            return True, Usuario(usuario=dados_usuario[1], email=dados_usuario[3], saldo=saldo_formatado, fatura=fatura_formatada)
         return False, None
 
     def obter_saldo(self, usuario):
@@ -41,7 +44,7 @@ class UsuarioModel:
         """
         dados_usuario = self.db.obter_dados_usuario(usuario)
         if dados_usuario:
-            return Usuario(usuario=dados_usuario[1], email=dados_usuario[3], saldo=dados_usuario[4])
+            return Usuario(usuario=dados_usuario[1], email=dados_usuario[3], saldo=dados_usuario[4], fatura=dados_usuario[5])
         return None
     
        

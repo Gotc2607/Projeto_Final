@@ -10,6 +10,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    cursor: url('sua-imagem.png') 16 16, auto;
   }
   /* Estilo da aba superior */
 .top-bar {
@@ -61,4 +62,90 @@ body {
 
 .menu a:hover {
     text-decoration: underline;
+}
+
+.saldo{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  margin: 20px;
+  background-color: rgba(255, 255, 255, 0.1); /* Fundo leve */
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  color: #ff0000;
+
+}
+
+.operations {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Espaço entre os ícones */
+  padding: 20px;
+  border-bottom: 1px solid rgb(180, 8, 8);
+  border-top: 1px solid rgb(180, 8, 8);
+}
+.operation {
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.1);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); 
+}
+.operation:hover {
+  transform: scale(1.1); /* Animação ao passar o mouse */
+  background-color: #383737;
+}
+.operation-icon {
+  padding: 5px;
+  font-size: 30px;
+  margin-bottom: 10px;
+  background-color: rgba(36, 35, 35, 0.8); /* Fundo do círculo */
+  border: 2px solid #ff0000; /* Borda do círculo */
+  border-radius: 50%; /* Torna o fundo circular */
+}
+.operation-label {
+  font-size: 14px;
+  text-align: center;
+  color: #ff0000;
+}
+
+.Blocks{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  margin: 20px;
+  background-color: rgba(255, 255, 255, 0.1); /* Fundo leve */
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Sombras suaves */
+}
+.credit-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #ff0000;
+}
+.credit-card-info h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.credit-card-info span {
+  font-size: 16px;
+  color: #ff0000;
+}
+.credit-card-arrow {
+  font-size: 24px;
+  cursor: pointer;
+  color: #ff0000;
+  transition: transform 0.2s ease;
+}
+.credit-card-arrow:hover {
+  transform: scale(1.2); /* Aumenta a seta ao passar o mouse */
 }

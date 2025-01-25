@@ -20,7 +20,8 @@ class Banco:
             usuario TEXT NOT NULL UNIQUE,
             senha TEXT NOT NULL,
             email TEXT NOT NULL,
-            saldo REAL DEFAULT 0
+            saldo REAL DEFAULT 0,
+            fatura REAL DEFAULT 0
         );
         ''')
         self.conexao.commit()
@@ -57,6 +58,13 @@ class Banco:
         Retorna o saldo do usuário.
         """
         self.cursor.execute("SELECT saldo FROM Usuario WHERE usuario = ?", (usuario,))
+        return self.cursor.fetchone()[0]
+
+    def obter_fatura(self, usuario):
+        """
+        Retorna a fatura do usuário.
+        """
+        self.cursor.execute("SELECT fatura FROM Usuario WHERE usuario = ?", (usuario,))
         return self.cursor.fetchone()[0]
     
     def depositar(self, usuario, valor):

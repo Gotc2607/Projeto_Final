@@ -44,7 +44,7 @@ class Application():
             print(at_usuario)
             if at_usuario:
                 print("Usuário autenticado com sucesso")
-                return template('app/views/html/tela_usuario', usuario=dados.usuario, email=dados.email, saldo=dados.saldo, time=int(time()))
+                return template('app/views/html/tela_usuario', usuario=dados.usuario, email=dados.email, saldo=dados.saldo, fatura=dados.fatura, time=int(time()))
             else:
                 print("Usuário ou senha inválidos")
                 return template('app/views/html/login', time=int(time()), erro="Usuário ou senha inválidos.")
