@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cadastro</title>
+    <link rel="stylesheet" href="../../static/css/style_cadastro.css?v={{time}}">
+</head>
+<body>
+
+    <div class="container">
+        <div class="image-section">
+            <img src="../../static/img/darius-img.png" alt="imagem-darius">
+        </div>
+        <div class="form-section">
+            <h1>Junte-se a Noxus</h1>
+            <form action="/cadastro" method="POST">
+                <p>Nome de usuario:</p>
+                <input type="text" name="usuario" placeholder="Usuario">
+                <p>Email:</p>
+                <input type="email" name="email" placeholder="Email">
+                <p>Senha:</p>
+                <input type="password" name="senha" placeholder="Senha">
+                
+                <input type="submit" value="Cadastrar">
+            </form>
+        </div>
+
+    </div>
+    
+
+</body>
+</html>

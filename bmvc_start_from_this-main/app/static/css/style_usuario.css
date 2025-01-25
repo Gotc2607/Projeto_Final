@@ -1,0 +1,64 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to bottom, rgb(12, 12, 12), rgb(43, 41, 41));
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Estilo da aba superior */
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgb(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 10px 20px;
+    border-bottom: 5px solid rgb(180, 8, 8);
+  }
+  /* Botão para menu retrátil */
+.menu-button {
+    background: none;
+    border: none;
+    color: rgb(248, 7, 7);
+    font-size: 20px;
+    cursor: pointer;
+  }
+  /* Estilo da foto e nome do usuário */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+.user-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgb(248, 7, 7);
+  }
+.user-info span {
+    font-size: 16px;
+  }
+
+.menu {
+    display: none;
+    background-color: rgba(32, 32, 32, 0.8);
+    color: red;
+    padding: 10px;
+}
+.menu a {
+    display: flex;
+    margin: 10px 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: red;
+}
+
+.menu a:hover {
+    text-decoration: underline;
+}
