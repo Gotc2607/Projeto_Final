@@ -10,7 +10,8 @@ class Application():
             'helper': self.helper,
             'login': self.login,
             'usuario': self.usuario,
-            'cadastro': self.cadastro
+            'cadastro': self.cadastro,
+            'deposito': self.deposito
         }
         self.model = UsuarioModel()
 
@@ -51,7 +52,7 @@ class Application():
 
     def usuario(self):
         if request.method == 'GET':
-            return template('app/views/html/tela_usuario', time=int(time()))
+            return template('app/views/html/tela_usuario', time=int(time()), usuario = usuario)
 
 
     def cadastro(self):
@@ -68,5 +69,19 @@ class Application():
             else:
                 return template('app/views/html/cadastro', time=int(time()), erro="Erro ao cadastrar usuário")
         
-       
+    def deposito(self):
+        if request.method == 'GET':
+            return template('app/views/html/deposito', time=int(time()))
+        if request.method == 'POST':
+            valor = float(request.forms.get('valor'))
+            senha = request.forms.get('senha')
+            
+            if valor_f <= 0:
+                return template('app/views/html/deposito', time=int(time()), erro="O valor deve ser maior que zero.")
+
+            if self.model.depositar(valor, senha):
+                print('deposito no valor de {valor} realizado')
+                redirect('/usuario')
+            else:
+                return template('app/views/html/deposito', time=int(time()), erro="Erro ao depositar")   
     

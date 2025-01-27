@@ -38,13 +38,18 @@ class UsuarioModel:
             return True, Usuario(usuario=dados_usuario[1], email=dados_usuario[3], saldo=saldo_formatado, fatura=fatura_formatada)
         return False, None
 
-    def obter_saldo(self, usuario):
-        """
-        Retorna o saldo do usuário.
-        """
-        dados_usuario = self.db.obter_dados_usuario(usuario)
-        if dados_usuario:
-            return Usuario(usuario=dados_usuario[1], email=dados_usuario[3], saldo=dados_usuario[4], fatura=dados_usuario[5])
-        return None
+    def depositar(self, valor, senha, usuario):
+
+        dados = self.db.obter_dados_usuario(usuario)
+
+        if self.db.verificar_senha(senha, dados[2]):
+            print('verificando senha para deposito')
+            saldo = dados[4]
+            saldo_atualizado = saldo + valor
+            if self.db.deposito(saldo_atualizado, dados[2]):
+                print('deposito realizado')
+                return True
+       
+
     
        

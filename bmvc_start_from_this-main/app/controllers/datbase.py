@@ -53,6 +53,12 @@ class Banco:
         print('dados do usuario obtidos')
         return self.cursor.fetchone() #[]
 
+    def obter_dados_usuario2(self, senha):
+        
+        self.cursor.execute("SELECT * FROM Usuario WHERE senha = ?", (usuario,))
+        print('dados do usuario obtidos')
+        return self.cursor.fetchone()
+
     def obter_saldo(self, usuario):
         """
         Retorna o saldo do usuário.
@@ -67,22 +73,7 @@ class Banco:
         self.cursor.execute("SELECT fatura FROM Usuario WHERE usuario = ?", (usuario,))
         return self.cursor.fetchone()[0]
     
-    def depositar(self, usuario, valor):
-        """
-        Deposita um valor na conta do usuário.
-        """
-        saldo = self.obter_saldo(usuario)
-        saldo += valor
+    def deposito(self, saldo, usuario):
         self.cursor.execute("UPDATE Usuario SET saldo = ? WHERE usuario = ?", (saldo, usuario))
         self.conexao.commit()
-        return saldo
-
-    def sacar(self, usuario, valor):    
-        """
-        Saca um valor da conta do usuário.
-        """
-        saldo = self.obter_saldo(usuario)
-        saldo -= valor
-        self.cursor.execute("UPDATE Usuario SET saldo = ? WHERE usuario = ?", (saldo, usuario))
-        self.conexao.commit()
-        return saldo
+        return True

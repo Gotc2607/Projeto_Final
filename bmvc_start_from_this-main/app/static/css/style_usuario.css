@@ -110,7 +110,8 @@ body {
   border: 2px solid #ff0000; /* Borda do círculo */
   border-radius: 50%; /* Torna o fundo circular */
 }
-.operation-label {
+.operation a {
+  text-decoration: none;
   font-size: 14px;
   margin-top: 10px;
   text-align: center;

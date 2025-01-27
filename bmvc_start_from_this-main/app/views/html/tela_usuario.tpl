@@ -37,7 +37,7 @@
         <div>
           <i class="fas fa-money-bill-wave" style="color: black; font-size: 30px;"></i>
         </div>
-        <div class="operation-label">Depósito</div>
+        <a href="/deposito">Depósito</a>
       </div>
       
       <div class="operation">

@@ -34,6 +34,11 @@ def usuario(info= None):
 def cadastro(info= None):
     return ctl.render('cadastro')
 
+@app.route('/deposito', method=['GET', 'POST'])
+def deposito(info= None):
+    return ctl.render('deposito')
+
+
 
 #-----------------------------------------------------------------------------
 
