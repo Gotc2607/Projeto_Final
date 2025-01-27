@@ -22,7 +22,7 @@
     <div class="menu" id="menu">
         <a href="">Meu perfil</a>
         <a href="">Configurações</a>
-        <a href="/login">Logout</a>
+        <a href="/logout">Logout</a>
     </div>
 
     <div class="saldo">

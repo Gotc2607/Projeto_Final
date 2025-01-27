@@ -12,7 +12,7 @@
 
         <img src="../../static/img/logo-noxus.jpg" alt="">
             
-        <h3>Depósito {{usuario}}</h3>
+        <h3>Depósito</h3>
 
         <form action="/deposito" method="POST">
             <input type="text" name="valor" placeholder="Valor do depósito:">

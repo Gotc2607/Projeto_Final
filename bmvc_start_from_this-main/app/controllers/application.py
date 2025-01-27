@@ -1,6 +1,7 @@
 from bottle import template, request, redirect, response
 from app.models.user_account import UsuarioModel
 from time import time
+import uuid
 
 
 class Application():
@@ -26,11 +27,9 @@ class Application():
     def login(self):
         print("Método login chamado")
         if request.method == 'GET':
-            print("Método GET recebido")
             return template('app/views/html/login', time=int(time()))
         
         if request.method == 'POST':
-            print("Método POST recebido")
             usuario = request.forms.get('usuario')
             senha = request.forms.get('senha')
 
@@ -39,21 +38,30 @@ class Application():
                 return template('app/views/html/login', time=int(time()), erro="Preencha todos os campos.")
             
             
-            print(f"Tentando autenticar o usuário: {usuario}")
+           
             at_usuario, dados = self.model.autenticar_usuario(usuario, senha)
-            print(dados)    
-            print(at_usuario)
+
             if at_usuario:
-                print("Usuário autenticado com sucesso")
+                print("Usuário autenticado com sucesso") 
+
+                response.set_cookie('session_id', dados.session_id, httponly=True, secure=True, max_age=3600)
+
                 return template('app/views/html/tela_usuario', usuario=dados.usuario, email=dados.email, saldo=dados.saldo, fatura=dados.fatura, time=int(time()))
             else:
                 print("Usuário ou senha inválidos")
                 return template('app/views/html/login', time=int(time()), erro="Usuário ou senha inválidos.")
 
     def usuario(self):
-        if request.method == 'GET':
-            return template('app/views/html/tela_usuario', time=int(time()), usuario = usuario)
+        session_id = request.get_cookie('session_id')
 
+        if not session_id:
+            return redirect('/login')
+        
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if usuario_autenticado:
+            return template('app/views/html/tela_usuario', time=int(time()), usuario=dados_usuario.usuario, email=dados_usuario.email, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura)
+        
+        return redirect('/login')
 
     def cadastro(self):
         if request.method == 'GET':
@@ -70,18 +78,32 @@ class Application():
                 return template('app/views/html/cadastro', time=int(time()), erro="Erro ao cadastrar usuário")
         
     def deposito(self):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+
         if request.method == 'GET':
             return template('app/views/html/deposito', time=int(time()))
+        
         if request.method == 'POST':
             valor = float(request.forms.get('valor'))
             senha = request.forms.get('senha')
             
-            if valor_f <= 0:
+            if valor <= 0:
                 return template('app/views/html/deposito', time=int(time()), erro="O valor deve ser maior que zero.")
-
-            if self.model.depositar(valor, senha):
-                print('deposito no valor de {valor} realizado')
-                redirect('/usuario')
-            else:
-                return template('app/views/html/deposito', time=int(time()), erro="Erro ao depositar")   
+                
+            if self.model.depositar(valor, senha, dados_usuario.usuario):
+                print(f"Depósito no valor de {valor} realizado com sucesso!")
+                return redirect('/usuario') 
+            return template('app/views/html/deposito', time=int(time()), erro="Erro ao realizar o depósito.")
+    def logout(self):
+    # Remove o cookie 'session_id' (invalidando a sessão)
+        response.delete_cookie('session_id')
     
+    # Redireciona para a página de login
+        return redirect('/login')

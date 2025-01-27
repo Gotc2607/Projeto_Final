@@ -28,7 +28,7 @@ def login(info= None):
 
 @app.route('/usuario', method=['GET', 'POST'])
 def usuario(info= None):
-    return ctl.render('usuario')
+        return ctl.render('usuario')
 
 @app.route('/cadastro', method=['GET', 'POST'])
 def cadastro(info= None):
@@ -37,6 +37,10 @@ def cadastro(info= None):
 @app.route('/deposito', method=['GET', 'POST'])
 def deposito(info= None):
     return ctl.render('deposito')
+
+@app.route('/logout')
+def logout():
+    return ctl.logout()
 
 
 
