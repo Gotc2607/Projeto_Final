@@ -10,7 +10,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    cursor: url('sua-imagem.png') 16 16, auto;
+  
   }
   /* Estilo da aba superior */
 .top-bar {
@@ -112,6 +112,7 @@ body {
 }
 .operation-label {
   font-size: 14px;
+  margin-top: 10px;
   text-align: center;
   color: #ff0000;
 }
@@ -148,4 +149,10 @@ body {
 }
 .credit-card-arrow:hover {
   transform: scale(1.2); /* Aumenta a seta ao passar o mouse */
+}
+
+.icon {
+  font-size: 32px; /* Tamanho do ícone */
+  color: #000000; /* Cor verde */
+  margin-right: 10px;
 }

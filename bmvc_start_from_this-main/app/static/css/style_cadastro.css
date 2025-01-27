@@ -6,7 +6,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #f4f4f4;
+    background: linear-gradient(to bottom, rgb(12, 12, 12), rgb(43, 41, 41));
   }
   .container {
     display: flex;
@@ -37,7 +37,7 @@ body {
     flex-direction: column;
     justify-content: center;
     border: solid 5px #333;
-    background-color: gray;
+    background-color: rgb(82, 79, 79);
   }
   
   h1 {
