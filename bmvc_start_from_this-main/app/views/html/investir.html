@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investimentos</title>
+</head>
+<body>
+    <div>
+        <h1>Total investido</h1>
+        <h2>{{investimentos}}</h2>
+    </div>
+    <div>
+        <form action="/investir" method="post">
+            <input type="text" name="investimentos" placeholder="Investir:" required>
+            <input type="submit" value="Investir">
+        </form>
+    </div>
+</body>
+</html>

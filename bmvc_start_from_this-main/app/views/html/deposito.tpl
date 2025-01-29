@@ -20,7 +20,7 @@
             <input type="submit" value="Depositar">
         </form>
 
-        <a href="/tela_usuario">Voltar</a>
+        <a href="/usuario">Voltar</a>
     </div>
 </body>
 </html>

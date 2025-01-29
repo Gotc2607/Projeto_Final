@@ -20,7 +20,7 @@
 
     </div>
     <div class="menu" id="menu">
-        <a href="">Meu perfil</a>
+        <a href="/perfil">Meu perfil</a>
         <a href="">Configurações</a>
         <a href="/logout">Logout</a>
     </div>
@@ -32,43 +32,65 @@
     </div>
 
     <div class="operations">
-      
+    <a href="/deposito">
       <div class="operation">
         <div>
           <i class="fas fa-money-bill-wave" style="color: black; font-size: 30px;"></i>
         </div>
-        <a href="/deposito">Depósito</a>
+        <p>Depósito</p>
       </div>
+    </a>
       
+    <a href="/extrato">
       <div class="operation">
-        <div class="fas fa-file-alt" style="font-size: 30px;" ></div>
-        <div class="operation-label">Extrato</div>
+        <div>
+          <i class="fas fa-file-alt" style="color: black; font-size: 30px;" ></i>
+        </div>
+        <p>Extrato</p>
       </div>
+    </a>
 
+    <a href="/transferencia">
       <div class="operation">
-        <div class="operation-icon"></div>
-        <div class="operation-label">Transferência</div>
+        <div >
+          <i class="fas fa-exchange-alt" style="color: black; font-size: 30px;"></i>
+        </div>
+        <p>Transferência</p>
       </div>
+    </a>
 
+    <a href="/pagamento">
       <div class="operation">
-        <div class="fas fa-file-invoice-dollar" style="font-size: 30px;"></div>
-        <div class="operation-label">Pagamento</div>
+        <div>
+          <i class="fas fa-file-invoice-dollar" style="color: black; font-size: 30px;"></i>
+        </div>
+        <p>Pagamento</p>
       </div>
-
-      <div class="operation">
-        <div class="material-icons">credit_card</div>
-        <div class="operation-label">Investir</div>
-      </div>
+    </a>
     </div>
 
-    <div class="Blocks">
-      <div class="credit-card-info">
+    <div class="Blocks" onclick="goToPayment()">
+      <div id="card-info">
         <h3>Cartão de Crédito</h3>
         <span>Fatura Atual: R$ {{fatura}}</span>
       </div>
   
-      <div class="credit-card-arrow" onclick="goToPayment()"> > </div>
+      <div id="credit-card-arrow"> > </div>
+    </div>
 
+    <div class="Blocks" onclick="goToinvest()">
+      <div id="card-info">
+        <h2>Total em investimentos</h2>
+        <h4> R$ {{investimentos}}</h4>
+      </div>
+
+      <div id="credit-card-arrow"> > </div>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; 2025 Meu Banco.</p>
+        <p>Todos os direitos reservados.</p>
+    </footer>
   <script src="../../static/js/usuario.js"></script>  
 </body>
 </html>

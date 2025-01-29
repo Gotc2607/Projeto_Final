@@ -12,7 +12,10 @@ class Application():
             'login': self.login,
             'usuario': self.usuario,
             'cadastro': self.cadastro,
-            'deposito': self.deposito
+            'deposito': self.deposito,
+            'perfil': self.perfil,
+            'investimentos': self.investimentos,
+            'fatura': self.fatura
         }
         self.model = UsuarioModel()
 
@@ -46,7 +49,7 @@ class Application():
 
                 response.set_cookie('session_id', dados.session_id, httponly=True, secure=True, max_age=3600)
 
-                return template('app/views/html/tela_usuario', usuario=dados.usuario, email=dados.email, saldo=dados.saldo, fatura=dados.fatura, time=int(time()))
+                return template('app/views/html/tela_usuario', usuario=dados.usuario, email=dados.email, saldo=dados.saldo, fatura=dados.fatura, investimentos=dados.investimentos, time=int(time()))
             else:
                 print("Usuário ou senha inválidos")
                 return template('app/views/html/login', time=int(time()), erro="Usuário ou senha inválidos.")
@@ -59,7 +62,7 @@ class Application():
         
         usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if usuario_autenticado:
-            return template('app/views/html/tela_usuario', time=int(time()), usuario=dados_usuario.usuario, email=dados_usuario.email, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura)
+            return template('app/views/html/tela_usuario', time=int(time()), usuario=dados_usuario.usuario, email=dados_usuario.email, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, investimentos=dados_usuario.investimentos)
         
         return redirect('/login')
 
@@ -101,6 +104,43 @@ class Application():
                 print(f"Depósito no valor de {valor} realizado com sucesso!")
                 return redirect('/usuario') 
             return template('app/views/html/deposito', time=int(time()), erro="Erro ao realizar o depósito.")
+
+    def perfil(self):
+        session_id = request.get_cookie('session_id') #pega o cokkie da sessão
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+        if request.method == 'GET':
+            return template('app/views/html/perfil')
+
+    def investimentos(self):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+        if request.method == 'GET':
+            return template('app/views/html/investir', investimentos=dados_usuario.investimentos)
+
+    def fatura(self):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+        if request.method == 'GET':
+            return template('app/views/html/pagar-fatura')
+
     def logout(self):
     # Remove o cookie 'session_id' (invalidando a sessão)
         response.delete_cookie('session_id')

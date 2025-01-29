@@ -23,7 +23,8 @@ class Banco:
             senha TEXT NOT NULL,
             email TEXT NOT NULL,
             saldo REAL DEFAULT 0,
-            fatura REAL DEFAULT 0
+            fatura REAL DEFAULT 0,
+            investimentos REAL DEFAULT 0
         );
         ''')
         self.conexao.commit()
@@ -100,3 +101,4 @@ class Banco:
         self.cursor.execute("SELECT usuario FROM Usuario WHERE session_id = ?", (session_id,))
         result = self.cursor.fetchone()
         return result[0] if result else None
+        

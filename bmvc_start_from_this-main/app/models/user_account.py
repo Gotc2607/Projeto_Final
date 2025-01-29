@@ -4,13 +4,14 @@ import uuid
 
 class Usuario:
     
-    def __init__(self, usuario,senha, email, saldo=0.0, fatura=0.0, session_id=None):
+    def __init__(self, usuario,senha, email, saldo=0.0, fatura=0.0, session_id=None, investimentos=0.0):
         self.usuario = usuario
         self.senha = senha
         self.email = email
         self.saldo = saldo
         self.fatura = fatura
         self.session_id = session_id
+        self.investimentos= investimentos
 
 
 class UsuarioModel:
@@ -41,7 +42,9 @@ class UsuarioModel:
             saldo_formatado = "{:.2f}".format(saldo)
             fatura = self.db.obter_fatura(usuario)
             fatura_formatada = "{:.2f}".format(fatura)
-            return True, Usuario(usuario=dados_usuario[2],senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id)
+            investimentos = dados_usuario[7]
+            inv_format =  "{:.2f}".format(investimentos)
+            return True, Usuario(usuario=dados_usuario[2],senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id, investimentos=inv_format)
         return False, None
     def verificar_session_id(self, session_id):
         """
@@ -54,7 +57,9 @@ class UsuarioModel:
             saldo_formatado = "{:.2f}".format(saldo)
             fatura = self.db.obter_fatura(usuario)
             fatura_formatada = "{:.2f}".format(fatura)
-            return True, Usuario(usuario=dados_usuario[2], senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id)
+            investimentos = dados_usuario[7]
+            inv_format =  "{:.2f}".format(investimentos)
+            return True, Usuario(usuario=dados_usuario[2], senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id, investimentos=inv_format)
         return False, None
 
     def depositar(self, valor, senha, usuario):

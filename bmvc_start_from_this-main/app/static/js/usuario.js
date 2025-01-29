@@ -4,6 +4,8 @@ function toggleMenu() {
   }
 
   function goToPayment() {
-    alert("Redirecionando para a página de pagamento..."); // Aqui você pode usar "window.location.href" para ir a outra página
-    window.location.href = "/pagar-fatura"; // Simulação de redirecionamento
+    window.location.href = "/fatura"; // Simulação de redirecionamento
+  }
+  function goToinvest() {
+    window.location.href = "/investimentos"; // Simulação de redirecionamento
   }

@@ -38,6 +38,18 @@ def cadastro(info= None):
 def deposito(info= None):
     return ctl.render('deposito')
 
+@app.route('/perfil', method=['GET', 'POST'])
+def perfil(info=None):
+    return ctl.render('perfil') 
+
+@app.route('/investimentos', method=['GET', 'POST'])
+def investimentos(info=None):
+    return ctl.render('investimentos')
+
+@app.route('/fatura', method=['GET', 'POST'])
+def fatura(info=None):
+    return ctl.render('fatura')
+
 @app.route('/logout')
 def logout():
     return ctl.logout()
