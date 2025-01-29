@@ -50,6 +50,10 @@ def investimentos(info=None):
 def fatura(info=None):
     return ctl.render('fatura')
 
+@app.route('/extrato')
+def extrato(info=None):
+    return ctl.render('extrato')
+
 @app.route('/logout')
 def logout():
     return ctl.logout()

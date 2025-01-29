@@ -1,4 +1,4 @@
-from app.controllers.datbase import Banco 
+from app.controllers.datbase import Banco
 import uuid
 
 
@@ -18,21 +18,16 @@ class UsuarioModel:
 
     def __init__(self):
         self.db = Banco()
-        self.db.criar_tabela()
+        self.db.criar_tabela1()
+        self.db.cria_tabela_depositos()
 
     def adicionar_usuario(self, usuario, senha, email):
-        """
-        Adiciona um usuário ao banco de dados.
-        """
         senha_cripto = self.db.hash_senha(senha)
         session_id = self.db.gerar_session_id(usuario)
         self.db.adicionar_usuario(session_id, usuario, senha_cripto, email)
         return True
 
     def autenticar_usuario(self, usuario, senha):
-        """
-        Verifica se o usuário e senha são válidos.
-        """
         dados_usuario = self.db.obter_dados_usuario(usuario) #vai retornar uma tupla com os dados do usuario (id [0], session_id[1], usuario[2], senha[3], email[4], saldo[5], fatura[6])
         if dados_usuario and self.db.verificar_senha(senha, dados_usuario[3]):
            
@@ -46,10 +41,8 @@ class UsuarioModel:
             inv_format =  "{:.2f}".format(investimentos)
             return True, Usuario(usuario=dados_usuario[2],senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id, investimentos=inv_format)
         return False, None
+
     def verificar_session_id(self, session_id):
-        """
-        Verifica se o session_id é válido.
-        """
         usuario = self.db.obter_usuario_por_session_id(session_id)
         if usuario:
             dados_usuario = self.db.obter_dados_usuario(usuario)
@@ -59,19 +52,19 @@ class UsuarioModel:
             fatura_formatada = "{:.2f}".format(fatura)
             investimentos = dados_usuario[7]
             inv_format =  "{:.2f}".format(investimentos)
-            return True, Usuario(usuario=dados_usuario[2], senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id, investimentos=inv_format)
+            return True, Usuario(usuario=dados_usuario[2], senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id, investimentos=inv_format), dados_usuario[0]
         return False, None
 
     def depositar(self, valor, senha, usuario):
-        """
-        Realiza o depósito no saldo do usuário.
-        """
         dados_usuario = self.db.obter_dados_usuario(usuario)
 
         print('validando a senha')
         if self.db.verificar_senha(senha, dados_usuario[3]):
             print('senha validada')
         
+            self.db.registrar_deposito(usuario, valor)
+            print('deposito registrado')
+
             saldo = dados_usuario[5]
             saldo_atualizado = saldo + valor
 
@@ -81,6 +74,9 @@ class UsuarioModel:
             return False
         return False
     
+    def transacoes(self, usuario_id):
+        historico_depositos = self.db.obter_depositos(usuario_id)
+        print('historico de depositos obtido')
     
 
     

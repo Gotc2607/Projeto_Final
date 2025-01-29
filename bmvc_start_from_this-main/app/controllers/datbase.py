@@ -3,6 +3,7 @@ import bcrypt
 import os
 import uuid
 
+
 class Banco:
 
     def __init__(self,):
@@ -15,7 +16,7 @@ class Banco:
     
 
 
-    def criar_tabela(self):
+    def criar_tabela1(self):
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS Usuario (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id TEXT,
@@ -27,6 +28,28 @@ class Banco:
             investimentos REAL DEFAULT 0
         );
         ''')
+        self.conexao.commit()
+    
+    def cria_tabela_depositos(self):
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS transacoes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER NOT NULL,
+            valor REAL,
+            data TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+        ''')
+        self.conexao.commit()
+
+    def obter_depositos(self, usuario_id):
+        self.cursor.execute(
+            "SELECT valor, data FROM transacoes WHERE usuario_id = ?",
+            (usuario_id,)
+        )
+        return self.cursor.fetchall()
+    
+    def registrar_deposito(self, usuario_id, valor):
+        self.cursor.execute("INSERT INTO transacoes (usuario_id, tipo, valor) VALUES (?,'deposito', ?)", 
+                            (usuario_id, valor))
         self.conexao.commit()
 
     def adicionar_usuario(self, session_id, usuario, senha_hash, email):
@@ -71,6 +94,7 @@ class Banco:
         """
         self.cursor.execute("SELECT fatura FROM Usuario WHERE usuario = ?", (usuario,))
         return self.cursor.fetchone()[0]
+
     
     def deposito(self, saldo, usuario):
         self.cursor.execute("UPDATE Usuario SET saldo = ? WHERE usuario = ?", (saldo, usuario))

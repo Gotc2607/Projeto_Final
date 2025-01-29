@@ -7,8 +7,36 @@
     <link rel="stylesheet" href="../../static/css/style_operacoes.css">
 </head>
 <body  class="body">
-    <div class="extrato">
-        <p>extrato</p>
+    <div class="container-operacoes">
+
+        <img src="../../static/img/logo-noxus.jpg" alt="">
+            
+        <p>{{usuario}}</p>
+        <p>{{saldo}}</p>
+
+        <hr>
+
+        <h3>Depósitos</h3>
+
+        <table border="1">
+            <tr>
+                <th>Valor</th>
+                <th>Data</th>
+            </tr>
+            % for deposito in depositos:
+            <tr>
+                <td>R$ {{ "%.2f" % deposito[0] }}</td>
+                <td>{{ deposito[1] }}</td>
+            </tr>
+            % end
+        </table>
+
+        <hr>
+
+        <h3>Fatura do cartão</h3>
+        <p>{{fatura}}</p>
+
+        <a href="/usuario">Voltar</a>
     </div>
 </body>
 </html>
