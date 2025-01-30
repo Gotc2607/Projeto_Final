@@ -44,6 +44,7 @@ class UsuarioModel:
 
     def verificar_session_id(self, session_id):
         usuario = self.db.obter_usuario_por_session_id(session_id)
+        
         if usuario:
             dados_usuario = self.db.obter_dados_usuario(usuario)
             saldo = self.db.obter_saldo(usuario)
@@ -52,7 +53,11 @@ class UsuarioModel:
             fatura_formatada = "{:.2f}".format(fatura)
             investimentos = dados_usuario[7]
             inv_format =  "{:.2f}".format(investimentos)
-            return True, Usuario(usuario=dados_usuario[2], senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id, investimentos=inv_format), dados_usuario[0]
+            print(f"Dados do usuário encontrados: {dados_usuario}") 
+
+            return True, Usuario(usuario=dados_usuario[2], senha=dados_usuario[3],email=dados_usuario[4], saldo=saldo_formatado, fatura=fatura_formatada, session_id=session_id, investimentos=inv_format)
+
+        print("Nenhum usuário encontrado para este session_id.")
         return False, None
 
     def depositar(self, valor, senha, usuario):
@@ -77,6 +82,7 @@ class UsuarioModel:
     def transacoes(self, usuario_id):
         historico_depositos = self.db.obter_depositos(usuario_id)
         print('historico de depositos obtido')
+        return historico_depositos
     
 
     

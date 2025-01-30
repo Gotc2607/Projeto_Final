@@ -61,7 +61,7 @@ class Application():
         if not session_id:
             return redirect('/login')
         
-        usuario_autenticado, dados_usuario, usuario_id = self.model.verificar_session_id(session_id)
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if usuario_autenticado:
             return template('app/views/html/tela_usuario', time=int(time()), usuario=dados_usuario.usuario, email=dados_usuario.email, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, investimentos=dados_usuario.investimentos)
         
@@ -87,7 +87,7 @@ class Application():
         if not session_id:
             return redirect('/login')
 
-        usuario_autenticado, dados_usuario,usuario_id = self.model.verificar_session_id(session_id)
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if not usuario_autenticado:
             return redirect('/login')
 
@@ -112,7 +112,7 @@ class Application():
         if not session_id:
             return redirect('/login')
 
-        usuario_autenticado, dados_usuario, usuario_id = self.model.verificar_session_id(session_id)
+        usuario_autenticado, dados_usuario= self.model.verificar_session_id(session_id)
         if not usuario_autenticado:
             return redirect('/login')
         if request.method == 'GET':
@@ -124,7 +124,7 @@ class Application():
         if not session_id:
             return redirect('/login')
 
-        usuario_autenticado, dados_usuario, usuario_id = self.model.verificar_session_id(session_id)
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if not usuario_autenticado:
             return redirect('/login')
         if request.method == 'GET':
@@ -136,7 +136,7 @@ class Application():
         if not session_id:
             return redirect('/login')
 
-        usuario_autenticado, dados_usuario,usuario_id = self.model.verificar_session_id(session_id)
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if not usuario_autenticado:
             return redirect('/login')
         if request.method == 'GET':
@@ -148,11 +148,14 @@ class Application():
         if not session_id:
             return redirect('/login')
 
-        usuario_autenticado, dados_usuario, usuario_id= self.model.verificar_session_id(session_id)
+        usuario_autenticado, dados_usuario= self.model.verificar_session_id(session_id)
+  
+
         if not usuario_autenticado:
             return redirect('/login')
 
-        depositos = self.model.obter_depositos(usuario_id)
+        depositos = self.model.transacoes(dados_usuario.usuario)
+        print(depositos)
         return template('app/views/html/extrato', usuario=dados_usuario.usuario, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, depositos=depositos)
 
 

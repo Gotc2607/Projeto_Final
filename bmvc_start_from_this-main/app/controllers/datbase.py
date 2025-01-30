@@ -34,18 +34,25 @@ class Banco:
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS transacoes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario_id INTEGER NOT NULL,
+            tipo TEXT CHECK(tipo IN ('deposito', 'saque')),
             valor REAL,
-            data TEXT DEFAULT CURRENT_TIMESTAMP
+            data TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         );
         ''')
         self.conexao.commit()
 
     def obter_depositos(self, usuario_id):
         self.cursor.execute(
-            "SELECT valor, data FROM transacoes WHERE usuario_id = ?",
+            "SELECT valor, data FROM transacoes WHERE usuario_id = ? AND tipo = 'deposito' ORDER BY data DESC",
             (usuario_id,)
         )
-        return self.cursor.fetchall()
+        depositos =self.cursor.fetchall()
+        print(depositos)
+        if depositos:
+            return depositos
+        else:
+            return [] 
     
     def registrar_deposito(self, usuario_id, valor):
         self.cursor.execute("INSERT INTO transacoes (usuario_id, tipo, valor) VALUES (?,'deposito', ?)", 

@@ -11,30 +11,35 @@
 
         <img src="../../static/img/logo-noxus.jpg" alt="">
             
-        <p>{{usuario}}</p>
-        <p>{{saldo}}</p>
+        <h2>{{usuario}}</h2>
+        <h3>{{saldo}}</h3>
 
         <hr>
 
-        <h3>Depósitos</h3>
+        <h3>Historico de depósitos</h3>
 
-        <table border="1">
+        <table>
             <tr>
                 <th>Valor</th>
                 <th>Data</th>
             </tr>
-            % for deposito in depositos:
-            <tr>
-                <td>R$ {{ "%.2f" % deposito[0] }}</td>
-                <td>{{ deposito[1] }}</td>
-            </tr>
+            % if depositos:
+                % for deposito in depositos:
+                    <tr>
+                        <td>R$ {{ deposito[0] }}</td> <td>{{ deposito[1] }}</td>
+                    </tr>
+                % end
+            % else:
+                <tr>
+                    <td colspan="2">Nenhum depósito encontrado.</td>
+                </tr>
             % end
         </table>
 
         <hr>
 
-        <h3>Fatura do cartão</h3>
-        <p>{{fatura}}</p>
+        <h2>Fatura do cartão</h2>
+        <h3>{{fatura}}</h3>
 
         <a href="/usuario">Voltar</a>
     </div>
