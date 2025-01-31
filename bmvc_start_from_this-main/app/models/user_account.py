@@ -66,8 +66,9 @@ class UsuarioModel:
         print('validando a senha')
         if self.db.verificar_senha(senha, dados_usuario[3]):
             print('senha validada')
-        
-            self.db.registrar_deposito(usuario, valor)
+
+            tipo = 'deposito'
+            self.db.registrar_operacoes(usuario, tipo, valor)
             print('deposito registrado')
 
             saldo = dados_usuario[5]
@@ -81,8 +82,25 @@ class UsuarioModel:
     
     def transacoes(self, usuario_id):
         historico_depositos = self.db.obter_depositos(usuario_id)
+        historico_transferencias = self.db.obter_transferencias(usuario_id)
         print('historico de depositos obtido')
-        return historico_depositos
+        return historico_depositos, historico_transferencias
+
+    def transferencia(self,usuario_receptor, usuario_atual, valor, senha):
+
+        dados = self.db.obter_dados_usuario(usuario_atual)
+        if not self.db.verificar_senha(senha, dados[3]):
+            return False
+        if self.db.verificar_usuario(usuario_receptor):
+            if self.db.transferencia(usuario_receptor, usuario_atual, valor, senha):
+                tipo1 = 'transferencia'
+                self.db.registrar_operacoes(usuario_atual, tipo1, valor)
+                tipo2 = 'deposito'
+                self.db.registrar_operacoes(usuario_receptor, tipo2, valor )
+                return True
+            return False
+        return False
+
     
 
     

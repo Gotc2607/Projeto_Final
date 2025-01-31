@@ -16,7 +16,8 @@ class Application():
             'perfil': self.perfil,
             'investimentos': self.investimentos,
             'fatura': self.fatura,
-            'extrato': self.extrato
+            'extrato': self.extrato,
+            'transferencia': self.transferencia
         }
         self.model = UsuarioModel()
 
@@ -116,7 +117,8 @@ class Application():
         if not usuario_autenticado:
             return redirect('/login')
         if request.method == 'GET':
-            return template('app/views/html/perfil')
+            return template('app/views/html/perfil',  usuario=dados_usuario.usuario, email=dados_usuario.email, senha=dados_usuario.senha)
+
 
     def investimentos(self):
         session_id = request.get_cookie('session_id')
@@ -154,9 +156,37 @@ class Application():
         if not usuario_autenticado:
             return redirect('/login')
 
-        depositos = self.model.transacoes(dados_usuario.usuario)
-        print(depositos)
-        return template('app/views/html/extrato', usuario=dados_usuario.usuario, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, depositos=depositos)
+        depositos, transferencias= self.model.transacoes(dados_usuario.usuario)
+        print(depositos, transferencias)
+        return template('app/views/html/extrato', usuario=dados_usuario.usuario, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, depositos=depositos, transferencias=transferencias)
+
+    
+    def transferencia(self):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+             return redirect('/login')
+
+        if request.method == 'GET':
+            return template('app/views/html/transferencia')
+
+        if request.method == 'POST':
+            usuario_receptor = request.forms.get('receptor')
+            valor = float(request.forms.get('valor'))
+            senha = request.forms.get('senha')
+            
+            usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+
+            if valor <= 0:
+                return template('app/views/html/transferencia', time=int(time()), erro="O valor deve ser maior que zero.")
+
+            if self.model.transferencia(usuario_receptor, dados_usuario.usuario, valor, senha ):
+                return redirect('/usuario')
+            return template('app/views/html/transferencia', time=int(time()), erro="Erro ao realizar a transferencia.")
 
 
     def logout(self):

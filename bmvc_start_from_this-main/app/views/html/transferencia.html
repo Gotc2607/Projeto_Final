@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transferencias</title>
+    <link rel="stylesheet" href="../../static/css/style_operacoes.css">
+</head>
+<body class="body">
+    <div class="container-operacoes">
+
+        <img src="../../static/img/logo-noxus.jpg" alt="">
+                
+        <h3>Transferência</h3>
+    
+        <form action="/transferencia" method="POST">
+            <input type="text" name="receptor" placeholder="Receptor:" required>
+            <input type="text" name="valor" placeholder="Valor:" required>
+            <input type="password" name="senha" placeholder="confirme sua senha:" required>
+            <input type="submit" value="Transferir">
+        </form>
+    
+        <a href="/usuario">Voltar</a>
+    </div>
+</body>
+</html>

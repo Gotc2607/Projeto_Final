@@ -54,6 +54,10 @@ def fatura(info=None):
 def extrato(info=None):
     return ctl.render('extrato')
 
+@app.route('/transferencia', method=['GET', 'POST'])
+def transferencia(info=None):
+    return ctl.render('transferencia')
+
 @app.route('/logout')
 def logout():
     return ctl.logout()

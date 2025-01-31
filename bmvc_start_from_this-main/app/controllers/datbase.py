@@ -34,7 +34,7 @@ class Banco:
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS transacoes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario_id INTEGER NOT NULL,
-            tipo TEXT CHECK(tipo IN ('deposito', 'saque')),
+            tipo TEXT CHECK(tipo IN ('deposito', 'transferencia')),
             valor REAL,
             data TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
@@ -54,9 +54,21 @@ class Banco:
         else:
             return [] 
     
-    def registrar_deposito(self, usuario_id, valor):
-        self.cursor.execute("INSERT INTO transacoes (usuario_id, tipo, valor) VALUES (?,'deposito', ?)", 
-                            (usuario_id, valor))
+    def obter_transferencias(self, usuario_id):
+        self.cursor.execute(
+            "SELECT valor, data FROM transacoes WHERE usuario_id = ? AND tipo = 'transferencia' ORDER BY data DESC",
+            (usuario_id,)
+        )
+        transferencias =self.cursor.fetchall()
+        print(transferencias)
+        if transferencias:
+            return transferencias
+        else:
+            return [] 
+    
+    def registrar_operacoes(self, usuario_id, tipo,valor):
+        self.cursor.execute("INSERT INTO transacoes (usuario_id, tipo, valor) VALUES (?, ?, ?)", 
+                            (usuario_id, tipo ,valor))
         self.conexao.commit()
 
     def adicionar_usuario(self, session_id, usuario, senha_hash, email):
@@ -77,6 +89,13 @@ class Banco:
         Verifica se a senha corresponde ao hash.
         """
         if bcrypt.checkpw(senha.encode('utf-8'), senha_hash):
+            return True
+        return False
+
+    def verificar_usuario(self, usuario):
+        self.cursor.execute("SELECT 1 FROM Usuario WHERE usuario = ?", (usuario,))
+        resultado = self.cursor.fetchone()
+        if resultado:
             return True
         return False
 
@@ -132,4 +151,15 @@ class Banco:
         self.cursor.execute("SELECT usuario FROM Usuario WHERE session_id = ?", (session_id,))
         result = self.cursor.fetchone()
         return result[0] if result else None
+
+    def transferencia(self,usuario_receptor, usuario_atual,valor,  senha):
+        #tira do usuario que está mandando 
+        if self.cursor.execute("UPDATE Usuario SET saldo = saldo - ? WHERE usuario = ?", (valor, usuario_atual))and  self.cursor.execute("UPDATE Usuario SET saldo = saldo + ? WHERE usuario = ?", (valor, usuario_receptor)):
+
+            print(f'transferencia de {usuario_atual} para {usuario_receptor} concluida')
+        
+            self.conexao.commit()
+            return True
+        return False
+
         

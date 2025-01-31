@@ -38,6 +38,28 @@
 
         <hr>
 
+        <h3>Historico de Transferencias</h3>
+
+        <table>
+            <tr>
+                <th>Valor</th>
+                <th>Data</th>
+            </tr>
+            % if transferencias:
+                % for transferencias in transferencias:
+                    <tr>
+                        <td>R$ {{  transferencias[0] }}</td> <td>{{ transferencias[1] }}</td>
+                    </tr>
+                % end
+            % else:
+                <tr>
+                    <td colspan="2">Nenhuma transferencia encontrado.</td>
+                </tr>
+            % end
+        </table>
+
+        <hr>
+
         <h2>Fatura do cartão</h2>
         <h3>{{fatura}}</h3>
 

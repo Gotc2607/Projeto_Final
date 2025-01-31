@@ -4,8 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil</title>
+    <link rel="stylesheet" href="../../static/css/style_operacoes.css">
 </head>
-<body>
-    <h1>ola</h1>
+<body class="body">
+
+    <div class="container-operacoes">
+
+        <img src="../../static/img/logo-noxus.jpg" alt="">
+
+        <h3> Usuario: {{usuario}} </h3>
+
+        <h3 id="senha"> senha: {{senha}} </h3>
+        <button onclick="mostrarSenha()">Mostrar Senha</button>
+
+        <h3> email cadastrado: {{email}} </h3>
+
+        <a href="/usuario">Voltar</a>
+
+    </div>
+    
+    <script  src="../../static/js/perfil.js"></script>
 </body>
 </html>
