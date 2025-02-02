@@ -1,0 +1,91 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.crypto-list, .actions {
+    width: 48%;
+}
+
+.crypto-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.crypto-list li {
+    background-color: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.crypto-list li span {
+    font-weight: bold;
+}
+
+.actions {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.actions input {
+    padding: 10px;
+    margin: 5px;
+    width: calc(100% - 22px);
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.actions button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.actions button:hover {
+    background-color: #218838;
+}
+
+.saldo {
+    background-color: #fff;
+    padding: 15px;
+    margin-bottom: 30px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    margin-top: 40px;
+}

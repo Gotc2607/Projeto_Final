@@ -4,17 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investimentos</title>
+    <link rel="stylesheet" href="../../static/css/style_investimento.css">
 </head>
 <body>
-    <div>
-        <h1>Total investido</h1>
-        <h2>{{investimentos}}</h2>
+    <header>
+        <h1>Página de Investimentos</h1>
+    </header>
+    
+    <div class="container">
+        <div class="saldo">
+            <h1>Saldo de Investimentos</h1>
+            <h2>R$ {{investimentos}}</h2>
+        </div>
+    
+        <div class="content">
+            <div class="crypto-list">
+                <h2>Preços das Criptomoedas</h2>
+                <ul id="precos-criptos">
+                    <!-- Preços das criptomoedas serão listados aqui -->
+                </ul>
+            </div>
+    
+            <div class="actions">
+                <h2>Comprar/Vender Criptomoedas</h2>
+                <form id="trade-form">
+                    <label for="crypto-select">Selecione a Criptomoeda</label>
+                    <select id="crypto-select" name="crypto">
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                        <option value="LTC">Litecoin (LTC)</option>
+                    </select>
+                    <label for="amount">Quantidade</label>
+                    <input type="number" id="amount" name="amount" placeholder="Quantidade" required>
+                    <button type="submit">Realizar Transação</button>
+                </form>
+            </div>
+        </div>
     </div>
-    <div>
-        <form action="/investir" method="post">
-            <input type="text" name="investimentos" placeholder="Investir:" required>
-            <input type="submit" value="Investir">
-        </form>
-    </div>
+    
+    <footer>
+        <p>&copy; 2025 Meu Banco. Todos os direitos reservados.</p>
+    </footer>
+    <script src="../../static/js/investimentos.js"></script>
 </body>
 </html>

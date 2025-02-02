@@ -2,6 +2,7 @@ from bottle import template, request, redirect, response
 from app.models.user_account import UsuarioModel
 from time import time
 import uuid
+import json
 
 
 class Application():
@@ -17,9 +18,13 @@ class Application():
             'investimentos': self.investimentos,
             'fatura': self.fatura,
             'extrato': self.extrato,
-            'transferencia': self.transferencia
+            'transferencia': self.transferencia,
+            'pagamentos': self.pagamentos,
+            'pagar_fatura': self.pagar_fatura,
+            'pagina_cartao': self.pagina_cartao
         }
         self.model = UsuarioModel()
+        self.ws_clients = set()
 
     def render(self,page, **kwargs):
        content = self.pages.get(page, self.helper)
@@ -119,19 +124,6 @@ class Application():
         if request.method == 'GET':
             return template('app/views/html/perfil',  usuario=dados_usuario.usuario, email=dados_usuario.email, senha=dados_usuario.senha)
 
-
-    def investimentos(self):
-        session_id = request.get_cookie('session_id')
-
-        if not session_id:
-            return redirect('/login')
-
-        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
-        if not usuario_autenticado:
-            return redirect('/login')
-        if request.method == 'GET':
-            return template('app/views/html/investir', investimentos=dados_usuario.investimentos)
-
     def fatura(self):
         session_id = request.get_cookie('session_id')
 
@@ -156,9 +148,9 @@ class Application():
         if not usuario_autenticado:
             return redirect('/login')
 
-        depositos, transferencias= self.model.transacoes(dados_usuario.usuario)
+        depositos, transferencias, pagamentos= self.model.transacoes(dados_usuario.usuario)
         print(depositos, transferencias)
-        return template('app/views/html/extrato', usuario=dados_usuario.usuario, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, depositos=depositos, transferencias=transferencias)
+        return template('app/views/html/extrato', usuario=dados_usuario.usuario, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, depositos=depositos, transferencias=transferencias, pagamentos=pagamentos)
 
     
     def transferencia(self):
@@ -188,10 +180,137 @@ class Application():
                 return redirect('/usuario')
             return template('app/views/html/transferencia', time=int(time()), erro="Erro ao realizar a transferencia.")
 
+    def pagamentos(self):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+
+        if request.method == 'GET':
+            return template('app/views/html/pagamento', time=int(time()), saldo=dados_usuario.saldo)
+
+        if request.method == 'POST':
+            valor = float(request.forms.get('valor'))
+            senha = request.forms.get('senha')
+            forma_pagamento = request.forms.get('tipo_pagamento')
+
+            print(f'forma de pagamento {forma_pagamento}')
+
+            if forma_pagamento == 'Cartao':
+                if self.model.pagamento_com_cartao(dados_usuario.usuario, senha, valor ):
+                    print('pagamento realizado')
+                    return redirect('/usuario')
+                return template('app/views/html/pagamento', erro='Falha no pagamento', saldo=dados_usuario.saldo )
+            
+            elif forma_pagamento == 'Saldo':
+                if valor > float(dados_usuario.saldo) or valor == 0.0:
+                    return template('app/views/html/pagamento', time=int(time()), erro="O valor deve ser maior que zero.", saldo=dados_usuario.saldo)
+                if self.model.pagamento_com_saldo(dados_usuario.usuario, senha, valor ):
+                    print('pagamento realizado')
+                    return redirect('/usuario')
+                return template('app/views/html/pagamento', erro='Falha no pagamento',saldo=dados_usuario.saldo )
+
+            return  template('app/views/html/pagamento', erro='Falha no pagamento',saldo=dados_usuario.saldo )
+            
+
+
+    def pagar_fatura(self):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+
+        if request.method == 'GET':
+            return template('app/views/html/pagar-fatura', time=int(time()), fatura=dados_usuario.fatura,saldo=dados_usuario.saldo)
+
+
+        if request.method == 'POST':
+            valor = float(request.forms.get('valor'))
+            senha = request.forms.get('senha')
+            forma_pagamento = request.forms.get('tipo_pagamento')
+
+            if valor > float(dados_usuario.fatura):
+                return template('app/views/html/pagar-fatura', fatura=dados_usuario.fatura,saldo=dados_usuario.saldo, erro='Falha no pagamento')
+            if forma_pagamento == 'Cartao':
+                if self.model.pagamento_com_cartao(dados_usuario.usuario, senha, valor ):
+                    if self.model.pagar_fatura(dados_usuario.usuario, senha, valor):
+                        return redirect('/usuario')
+                    return template('app/views/html/pagar-fatura', fatura=dados_usuario.fatura,saldo=dados_usuario.saldo, erro='Falha no pagamento' )
+                return template('app/views/html/pagar-fatura', fatura=dados_usuario.fatura, saldo=dados_usuario.saldo,erro='Falha no pagamento' )
+
+            elif forma_pagamento == 'Saldo':
+                if valor > float(dados_usuario.saldo) or valor == 0.0:
+                    return template('app/views/html/pagamento', time=int(time()), erro="O valor deve ser maior que zero.", fatura=dados_usuario.fatura,saldo=dados_usuario.saldo)
+
+                if self.model.pagamento_com_saldo(dados_usuario.usuario, senha, valor ):
+                    if self.model.pagar_fatura(dados_usuario.usuario, senha, valor):
+                        return redirect('/usuario')
+                    return template('app/views/html/pagar-fatura', fatura=dados_usuario.fatura, saldo=dados_usuario.saldo, erro='Falha no pagamento' )
+                return template('app/views/html/pagar-fatura', fatura=dados_usuario.fatura,saldo=dados_usuario.saldo, erro='Falha no pagamento' )
+            else:
+                return  template('app/views/html/pagar-fatura', fatura=dados_usuario.fatura, saldo=dados_usuario.saldo , erro='Falha no pagamento' )
+
+    def pagina_cartao(self):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+        return template('app/views/html/cartao', time=int(time()), usuario=dados_usuario.usuario, fatura=dados_usuario.fatura)
 
     def logout(self):
-    # Remove o cookie 'session_id' (invalidando a sessão)
         response.delete_cookie('session_id')
-    
-    # Redireciona para a página de login
         return redirect('/login')
+
+#----------------------------------------------------------------------
+#area de investimentos 
+    def investimentos(self):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+        if request.method == 'GET':
+            return template('app/views/html/investir', investimentos=dados_usuario.investimentos)
+
+    def ws_investimentos(self,ws):
+        session_id = request.get_cookie('session_id')
+
+        if not session_id:
+            return redirect('/login')
+
+        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
+        if not usuario_autenticado:
+            return redirect('/login')
+
+        self.ws_clients.add(ws)
+        try:
+            for msg in ws:
+                data = json.loads(msg)  # Aqui 'msg' é a mensagem recebida, convertida em JSON
+
+            # Aqui verificamos se o tipo da mensagem é 'trade'
+                if data['type'] == 'trade':
+                    self.model.processar_trade(data, ws)  # Passa o dicionário 'data' para processar o trade
+
+             # Se desejar, pode adicionar mais tipos de mensagem aqui, como 'update' para enviar atualizações ao cliente
+                elif data['type'] == 'update':
+                    self.send_to_clients({'type': 'update', 'message': 'Atualização disponível!'})
+                    
+        except:
+            pass
+        finally:
+            self.ws_clients.remove(ws)

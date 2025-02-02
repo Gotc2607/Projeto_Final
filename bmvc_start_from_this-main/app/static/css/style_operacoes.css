@@ -56,3 +56,11 @@
     padding: 10px;
     margin: 10px;
     }
+
+.container-operacoes select {
+    border-color: #ff0000;
+    color: #ff0000;
+    background-color: #332;
+    font-size: 20px;
+}
+

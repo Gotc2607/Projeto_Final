@@ -3,7 +3,6 @@ import bcrypt
 import os
 import uuid
 
-
 class Banco:
 
     def __init__(self,):
@@ -34,12 +33,24 @@ class Banco:
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS transacoes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario_id INTEGER NOT NULL,
-            tipo TEXT CHECK(tipo IN ('deposito', 'transferencia')),
+            tipo TEXT CHECK(tipo IN ('deposito', 'transferencia', 'pagamento')),
             valor REAL,
             data TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         );
         ''')
+        self.conexao.commit()
+
+    def criar_tabela_investimentos(self):
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS investimentos (
+            id INTEGER PRIMARY KEY,
+            usuario TEXT,
+            criptomoeda TEXT,
+            quantia_comprada REAL,
+            valor_compra REAL,
+            FOREIGN KEY(usuario) REFERENCES Usuario(usuario)
+        )""")
         self.conexao.commit()
 
     def obter_depositos(self, usuario_id):
@@ -65,6 +76,18 @@ class Banco:
             return transferencias
         else:
             return [] 
+    
+    def obter_pagamentos(self, usuario_id):
+        self.cursor.execute(
+            "SELECT valor, data FROM transacoes WHERE usuario_id = ? AND tipo = 'pagamento'  ORDER BY data DESC",
+            (usuario_id,)
+        )
+        pagamentos =self.cursor.fetchall()
+        if pagamentos:
+            return pagamentos
+        else:
+            return [] 
+
     
     def registrar_operacoes(self, usuario_id, tipo,valor):
         self.cursor.execute("INSERT INTO transacoes (usuario_id, tipo, valor) VALUES (?, ?, ?)", 
@@ -162,4 +185,47 @@ class Banco:
             return True
         return False
 
-        
+    def pagamento_com_saldo(self, usuario,valor):
+        if self.cursor.execute("UPDATE Usuario SET saldo = saldo - ? WHERE usuario = ?", (valor, usuario)):
+            self.conexao.commit()
+            return True
+        return False
+
+    def pagamento_com_cartao(self,usuario, valor):
+        if self.cursor.execute("UPDATE Usuario SET fatura = fatura + ? WHERE usuario = ?", (valor, usuario)):
+            self.conexao.commit()
+            return True
+        return False
+
+    def pagar_fatura(self, usuario, valor):
+        if self.cursor.execute("UPDATE Usuario SET fatura = fatura - ? WHERE usuario = ?", (valor, usuario)):
+            self.conexao.commit()
+            return True
+        return False
+#--------------------------------------------------------------------------]
+#area de investimentos
+    def criar_tabela_investimentos(self):
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS investimentos (
+            id INTEGER PRIMARY KEY,
+            usuario TEXT,
+            criptomoeda TEXT,
+            quantia_comprada REAL,
+            valor_compra REAL,
+            FOREIGN KEY(usuario) REFERENCES Usuario(usuario)
+        )""")
+        self.conexao.commit()
+
+    def saldo_investido(self, usuario):
+        self.cursor.execute("SELECT investimentos FROM Usuario WHERE usuario = ?", (usuario,))
+        result = self.cursor.fetchone()
+        return result[0] if result else None
+    
+    def atualizar_saldo_investido(self, usuario, novo_saldo):
+        self.cursor.execute("UPDATE Usuario SET investimentos = ? WHERE id = ?", (novo_saldo, usuario))
+        self.conexao.commit()
+
+    def registrar_trade(self, usuario, criptomoeda, quantia_comprada, valor_compra):
+        self.cursor.execute("INSERT INTO Trades (usuario, criptomoeda, quantia_comprada, valor_compra) VALUES (?, ?, ?, ?)",
+                        (usuario, criptomoeda, quantia_comprada, valor_compra))
+        self.conexao.commit()

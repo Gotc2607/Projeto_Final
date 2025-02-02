@@ -1,6 +1,7 @@
 from app.controllers.application import Application
 from bottle import Bottle, route, run, request, static_file
 from bottle import redirect, template, response
+from bottle_websocket import websocket, GeventWebSocketServer
 
 
 app = Bottle()
@@ -42,10 +43,6 @@ def deposito(info= None):
 def perfil(info=None):
     return ctl.render('perfil') 
 
-@app.route('/investimentos', method=['GET', 'POST'])
-def investimentos(info=None):
-    return ctl.render('investimentos')
-
 @app.route('/fatura', method=['GET', 'POST'])
 def fatura(info=None):
     return ctl.render('fatura')
@@ -58,12 +55,37 @@ def extrato(info=None):
 def transferencia(info=None):
     return ctl.render('transferencia')
 
+@app.route('/pagamento', method=['GET', 'POST'])
+def pagamentos(info= None):
+    return ctl.render('pagamentos')
+
+@app.route('/pagar_fatura', method=['GET', 'POST'])
+def pagar_fatura(info=None):
+    return ctl.render('pagar_fatura')
+
+@app.route('/cartão')
+def pagina_cartao(info=None):
+    return ctl.render('pagina_cartao')
+
 @app.route('/logout')
 def logout():
     return ctl.logout()
 
+#-----------------------------------------------------------------------------
+#area de investimentos
 
 
+@app.route('/investimentos', method=['GET', 'POST'])
+def investimentos(info=None):
+    return ctl.render('investimentos')
+
+@app.route('/ws/investimentos', apply=[websocket])
+def ws_investimentos(ws):
+    ctl.ws_investimentos(ws)
+
+@app.route('/api/saldo_investido', method='GET')
+def saldo_investido(info=None):
+    return ctl.saldo_investido()
 
 
 #-----------------------------------------------------------------------------
@@ -71,4 +93,4 @@ def logout():
 if __name__ == '__main__':
 
     db = Application()
-    run(app, host='0.0.0.0', port=8080, debug=True)
+    run(app, host='0.0.0.0', port=8080, debug=True ,server=GeventWebSocketServer)

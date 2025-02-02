@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamentos</title>
+    <link rel="stylesheet" href="../../static/css/style_operacoes.css">
+</head>
+<body class="body">
+    
+    <div class="container-operacoes">
+
+        <img src="../../static/img/logo-noxus.jpg" alt="logo noxus">
+
+        <h2>Pagamento</h2>
+        <form action="/pagamento" method="post">
+
+            <h2>Saldo: {{saldo}}</h2>
+            <h3>Valor:</h3>
+            <input type="text" name="valor"  placeholder="Valor: " required>
+
+            <h3>Senha:</h3>
+            <input type="password" name="senha" placeholder="comfirme a senha: " required>
+            
+            <h3>Método de Pagamento:</h3>
+            <select name="tipo_pagamento" required>
+                <option value="Cartao" name="Cartao">Cartão</option>
+                <option value="Saldo" name="Saldo">Saldo</option>
+            </select>
+            
+            <input type="submit" value="Pagar">
+        </form>
+    </div>
+
+
+</body>
+</html>

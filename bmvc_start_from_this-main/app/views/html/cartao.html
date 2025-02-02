@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartão  de credito</title>
+    <link rel="stylesheet" href="../../static/css/style_usuario.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="top-bar">
+
+        <div class="user-info">
+          <img src="../../static/img/logo-noxus.jpg" alt="Foto do usuário">
+          <span>{{usuario}}</span>
+        </div>
+
+        <button class="menu-button" onclick="toggleMenu()">☰</button>
+
+    </div>
+    <div class="menu" id="menu">
+        <a href="/usuario">Home</a>
+        <a href="/logout">Logout</a>
+    </div>
+
+    <div class="icon-card">   
+        <i class="fa-regular fa-credit-card"></i>
+    </div>
+
+    <div class="Blocks" onclick="goToPayment_fatura()">
+        <div id="card-info">
+            <h3>Pagar fatura</h3>
+            <span>Fatura Atual: R$ {{fatura}}</span>
+        </div>
+        
+        <div id="credit-card-arrow"> > </div>
+    </div>
+
+    <div class="Blocks">
+
+        <div id="card-info">
+            <h2>LImite do usuario:</h2>
+            <h3>R$ 1000,00</h3>
+        </div>
+
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 Meu Banco.</p>
+          <p>Todos os direitos reservados.</p>
+    </footer>
+    
+    <script src="../../static/js/usuario.js"></script>
+</body>
+</html>

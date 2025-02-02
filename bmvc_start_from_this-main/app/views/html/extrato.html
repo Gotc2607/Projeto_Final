@@ -60,6 +60,27 @@
 
         <hr>
 
+        <h3>Historico de Pagamentos</h3>
+        <table>
+            <tr>
+                <th>Valor</th>
+                <th>Data</th>
+            </tr>
+            % if pagamentos:
+                % for pagamentos in pagamentos:
+                    <tr>
+                        <td>R$ {{  pagamentos[0] }}</td> <td>{{ pagamentos[1] }}</td>
+                    </tr>
+                % end
+            % else:
+                <tr>
+                    <td colspan="2">Nenhum pagamento encontrado.</td>
+                </tr>
+            % end
+        </table>
+
+        <hr>
+
         <h2>Fatura do cartão</h2>
         <h3>{{fatura}}</h3>
 

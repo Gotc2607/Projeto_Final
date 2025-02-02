@@ -173,3 +173,10 @@ body {
   width: 100%;
   font-size: 14px;
 }
+
+.icon-card{
+    text-align: center;
+    color: #ff0000;
+    font-size: 200px;
+
+}

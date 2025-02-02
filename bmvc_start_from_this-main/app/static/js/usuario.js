@@ -3,9 +3,12 @@ function toggleMenu() {
     menu.style.display = menu.style.display === "none" ? "block" : "none";
   }
 
-  function goToPayment() {
-    window.location.href = "/fatura"; // Simulação de redirecionamento
+  function goToPayment_fatura() {
+    window.location.href = "/pagar_fatura"; 
+  }
+  function goToCard() {
+    window.location.href = "/cartão"; 
   }
   function goToinvest() {
-    window.location.href = "/investimentos"; // Simulação de redirecionamento
+    window.location.href = "/investimentos"; 
   }
