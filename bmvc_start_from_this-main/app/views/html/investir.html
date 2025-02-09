@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investimentos</title>
     <link rel="stylesheet" href="../../static/css/style_investimento.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 </head>
 <body>
     <header>
@@ -13,30 +15,63 @@
     
     <div class="container">
         <div class="saldo">
-            <h1>Saldo de Investimentos</h1>
-            <h2>R$ {{investimentos}}</h2>
+            <h1>Total em Investimentos</h1>
+            <h2>{{investimentos}}</h2>
         </div>
     
         <div class="content">
             <div class="crypto-list">
                 <h2>Preços das Criptomoedas</h2>
-                <ul id="precos-criptos">
-                    <!-- Preços das criptomoedas serão listados aqui -->
+                <ul>
+
+                    <h1>Investimentos</h1>
+                    <p>Saldo disponível: <span id="saldo">{{saldo}}</span></p>
+                        
+                    <h2>Preços das Criptomoedas</h2>
+                    <ul>
+                        <li>Bitcoin (BTC): <span id="btc_price">{{carteira["BTC"]}}</span></li>
+                        <li>Ethereum (ETH): <span id="eth_price">{{carteira["ETH"]}}</span></li>
+                        <li>Dogecoin (DOGE): <span id="doge_price">{{carteira["DOGE"]}}</span></li>
+                    </ul>
+                        
+                        
+                    
                 </ul>
+            </div>
+
+            <div class="wallet">
+                <h2>Sua Carteira</h2>
+                    <ul>
+                        <li>BTC: <span id="btc_balance">{{carteira["BTC"]}}</span> </li>
+                        <li>Bitcoin (BTC): <span id="btc_value">{{valor_btc}}</span></li>
+
+                        <li>ETH: <span id="eth_balance">{{carteira["ETH"]}}</span></li>
+                        <li>Ethereum (ETH): <span id="eth_value">{{valor_eth}}</span></li>
+
+                        <li>DOGE: <span id="doge_balance">{{carteira["DOGE"]}}</span></li>
+                        <li>Dogecoin (DOGE): <span id="doge_value">{{valor_doge}}</span></li>
+
+                    </ul>
             </div>
     
             <div class="actions">
                 <h2>Comprar/Vender Criptomoedas</h2>
-                <form id="trade-form">
+                <form id="compra-form">
                     <label for="crypto-select">Selecione a Criptomoeda</label>
-                    <select id="crypto-select" name="crypto">
-                        <option value="BTC">Bitcoin (BTC)</option>
-                        <option value="ETH">Ethereum (ETH)</option>
-                        <option value="LTC">Litecoin (LTC)</option>
-                    </select>
-                    <label for="amount">Quantidade</label>
-                    <input type="number" id="amount" name="amount" placeholder="Quantidade" required>
-                    <button type="submit">Realizar Transação</button>
+            
+                    <p>Bitcoin (BTC)</p>
+                    <input type="number" id="quantidade_btc" placeholder="Digite o valor em R$">
+                    <button data-moeda="BTC">Comprar BTC</button>
+                    
+                    <p>Ethereum (ETH)</p>
+                    <input type="number" id="quantidade_eth" placeholder="Digite o valor em R$">
+                    <button data-moeda="ETH">Comprar ETH</button>
+                    
+            
+                    <p>Dogecoin (DOGE)</p>
+                    <input type="number" id="quantidade_doge" placeholder="Digite o valor em R$">
+                    <button data-moeda="DOGE">Comprar DOGE</button>
+
                 </form>
             </div>
         </div>
@@ -45,6 +80,88 @@
     <footer>
         <p>&copy; 2025 Meu Banco. Todos os direitos reservados.</p>
     </footer>
-    <script src="../../static/js/investimentos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        var socket;
+    
+        document.addEventListener("DOMContentLoaded", function() {
+            // Conectar o socket na inicialização
+            socket = io.connect('http://' + document.domain + ':' + location.port + '/investimentos');
+        
+            // Ouvir evento de atualização dos preços
+            socket.on('atualizar_precos', function(data) {
+                document.getElementById('btc_price').innerText = data.BTC;
+                document.getElementById('eth_price').innerText = data.ETH;
+                document.getElementById('doge_price').innerText = data.DOGE;
+            });
+    
+            // Ouvir evento de atualização do saldo
+            socket.on('atualizar_saldo', function(data) {
+                console.log("Saldo atualizado:", data);
+                // Atualiza o saldo na interface
+                atualizarSaldoNaInterface(data.usuario, data.moeda, data.quantidade);
+            });
+        
+            // Ouvir evento de atualização da carteira
+            socket.on('atualizar_carteira', function(data) {
+                document.getElementById('btc_balance').innerText = data.BTC;
+                document.getElementById('eth_balance').innerText = data.ETH;
+                document.getElementById('doge_balance').innerText = data.DOGE;
+            });
+        
+            // Ouvir evento de atualização de valores convertidos
+            socket.on('atualizar_valores_convertidos', (data) => {
+                document.getElementById('btc_value').innerText = data.valor_btc.toFixed(6);
+                document.getElementById('eth_value').innerText = data.valor_eth.toFixed(6);
+                document.getElementById('doge_value').innerText = data.valor_doge.toFixed(6);
+            });
+    
+            // Adiciona os eventos de clique aos botões para compra
+            document.querySelectorAll(".actions button").forEach(button => {
+                button.addEventListener("click", function(event) {
+                    let moeda = this.getAttribute("data-moeda");  // Pega a moeda do atributo correto
+                    comprarMoeda(event, moeda);
+                });
+            });
+        });
+    
+        // Função para comprar moeda
+        function comprarMoeda(event, moeda) {
+            event.preventDefault();
+    
+            let quantidadeInputId = "quantidade_" + moeda.toLowerCase();
+            let quantidade = parseFloat(document.getElementById(quantidadeInputId).value);
+    
+            if (!quantidade || quantidade <= 0) {
+                alert("Digite um valor válido para comprar.");
+                return;
+            }
+    
+            // Envia a requisição de compra para o servidor
+            fetch('/investimentos', {
+                method: 'POST',
+                body: JSON.stringify({ moeda: moeda, quantidade: quantidade }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Compra realizada com sucesso!");
+                // Atualiza os preços e a carteira após a compra
+                socket.emit('atualizar_carteira', { usuario: '{{ usuario }}' });
+            })
+            .catch(error => {
+                console.error("Erro ao comprar moeda:", error);
+                alert("Erro ao comprar moeda.");
+            });
+        }
+    
+        // Função para atualizar o saldo na interface
+        function atualizarSaldoNaInterface(usuario, moeda, quantidade) {
+            let saldoElement = document.getElementById('saldo_' + moeda.toLowerCase());
+            if (saldoElement) {
+                saldoElement.innerText = quantidade;
+            }
+        }
+    </script>    
 </body>
 </html>

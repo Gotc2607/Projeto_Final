@@ -41,18 +41,6 @@ class Banco:
         ''')
         self.conexao.commit()
 
-    def criar_tabela_investimentos(self):
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS investimentos (
-            id INTEGER PRIMARY KEY,
-            usuario TEXT,
-            criptomoeda TEXT,
-            quantia_comprada REAL,
-            valor_compra REAL,
-            FOREIGN KEY(usuario) REFERENCES Usuario(usuario)
-        )""")
-        self.conexao.commit()
-
     def obter_depositos(self, usuario_id):
         self.cursor.execute(
             "SELECT valor, data FROM transacoes WHERE usuario_id = ? AND tipo = 'deposito' ORDER BY data DESC",
@@ -202,30 +190,74 @@ class Banco:
             self.conexao.commit()
             return True
         return False
-#--------------------------------------------------------------------------]
-#area de investimentos
-    def criar_tabela_investimentos(self):
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS investimentos (
-            id INTEGER PRIMARY KEY,
-            usuario TEXT,
-            criptomoeda TEXT,
-            quantia_comprada REAL,
-            valor_compra REAL,
-            FOREIGN KEY(usuario) REFERENCES Usuario(usuario)
-        )""")
+#--------------------------------------------------------------------------
+    def criar_carteira(self):
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS carteira (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario TEXT NOT NULL,
+                saldo_disponivel REAL DEFAULT 0,
+                moeda TEXT NOT NULL,
+                quantidade REAL DEFAULT 0,
+                UNIQUE(usuario, moeda)
+            )
+        """)
         self.conexao.commit()
 
-    def saldo_investido(self, usuario):
-        self.cursor.execute("SELECT investimentos FROM Usuario WHERE usuario = ?", (usuario,))
-        result = self.cursor.fetchone()
-        return result[0] if result else None
+    def obter_saldo_disponivel(self, usuario):
+        self.cursor.execute("SELECT saldo_disponivel FROM carteira WHERE usuario = ?", (usuario,))
+        return self.cursor.fetchone()[0]
+
+    def deposito_saldo_disponivel(self, usuario, quantidade):
+        if self.cursor.execute(""" UPDATE carteira SET saldo_disponivel = saldo_disponivel + ? WHERE usuario = ?""", (quantidade, usuario)):
+            self.conexao.commit()
+            return True
+        return False
+
+    def compra_saldo_disponivel(self, usuario, quantidade):
+        if self.cursor.execute(""" UPDATE carteira SET saldo_disponivel = saldo_disponivel - ? WHERE usuario = ?""", (quantidade, usuario)):
+            self.conexao.commit()
+            return True
+        return False
+
+
+    def adicionar_carteira_usuario(self, usuario, moeda, quantidade):
+        self.cursor.execute("""INSERT INTO carteira (usuario, moeda, quantidade) VALUES (?,?,?)""",(usuario,moeda, quantidade))
+        self.conexao.commit()
     
-    def atualizar_saldo_investido(self, usuario, novo_saldo):
-        self.cursor.execute("UPDATE Usuario SET investimentos = ? WHERE id = ?", (novo_saldo, usuario))
-        self.conexao.commit()
+    def criar_carteira_usuario(self, usuario):
+    # Cria automaticamente uma carteira para o usuário se ele ainda não tiver uma.
+    
+        self.cursor.execute("SELECT COUNT(*) FROM carteira WHERE usuario = ?", (usuario,))
+        existe = self.cursor.fetchone()[0]
 
-    def registrar_trade(self, usuario, criptomoeda, quantia_comprada, valor_compra):
-        self.cursor.execute("INSERT INTO Trades (usuario, criptomoeda, quantia_comprada, valor_compra) VALUES (?, ?, ?, ?)",
-                        (usuario, criptomoeda, quantia_comprada, valor_compra))
+        if not existe:
+        # Moedas disponíveis no sistema
+            moedas = ["BTC", "ETH", "DOGE"]
+            for moeda in moedas:
+                self.cursor.execute("INSERT INTO carteira (usuario, moeda, quantidade) VALUES (?, ?, ?)", (usuario, moeda, 0))
+        
+            self.conexao.commit()
+            print(f"Carteira criada para o usuário {usuario}")
+
+    def Obter_carteira_usuario(self, usuario):
+        self.cursor.execute("SELECT moeda, quantidade FROM carteira WHERE usuario = ?", (usuario,))
+        resultado = self.cursor.fetchall()
+        return dict(resultado) if resultado else {}
+
+    def atualizar_carteira(self, usuario, moeda, quantidade):
+        carteira = self.Obter_carteira_usuario(usuario)
+        if moeda in carteira:
+            nova_quantidade = carteira[moeda] + quantidade
+            if nova_quantidade <= 0:
+                self.cursor.execute("DELETE FROM carteira WHERE usuario = ? AND moeda = ?", (usuario, moeda))
+                return 
+            else:
+                self.cursor.execute("UPDATE carteira SET quantidade = ? WHERE usuario = ? AND moeda = ?", (nova_quantidade, usuario, moeda))
+        else:
+            if quantidade > 0:
+                self.cursor.execute("INSERT INTO carteira (usuario, moeda, quantidade) VALUES (?, ?, ?)", (usuario, moeda, quantidade))
+
+        
         self.conexao.commit()
+        return True

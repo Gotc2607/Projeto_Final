@@ -1,13 +1,15 @@
 from bottle import template, request, redirect, response
 from app.models.user_account import UsuarioModel
-from time import time
+from time import time, sleep
 import uuid
 import json
+import threading
+import random
 
 
 class Application():
 
-    def __init__(self):
+    def __init__(self, sio):
         self.pages = {
             'helper': self.helper,
             'login': self.login,
@@ -24,7 +26,8 @@ class Application():
             'pagina_cartao': self.pagina_cartao
         }
         self.model = UsuarioModel()
-        self.ws_clients = set()
+        self.sio = sio
+        self.crypto_prices = {"BTC": 50000, "ETH": 3500, "DOGE": 0.10}  # Preços iniciais simulados
 
     def render(self,page, **kwargs):
        content = self.pages.get(page, self.helper)
@@ -83,7 +86,6 @@ class Application():
             
             if self.model.adicionar_usuario(usuario, senha, email):
                 redirect('/login')
-
             else:
                 return template('app/views/html/cadastro', time=int(time()), erro="Erro ao cadastrar usuário")
         
@@ -273,8 +275,6 @@ class Application():
         response.delete_cookie('session_id')
         return redirect('/login')
 
-#----------------------------------------------------------------------
-#area de investimentos 
     def investimentos(self):
         session_id = request.get_cookie('session_id')
 
@@ -284,33 +284,85 @@ class Application():
         usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if not usuario_autenticado:
             return redirect('/login')
+
+        # Pegando os ativos do usuário no banco de dados
+        carteira = self.model.buscar_carteira(dados_usuario.usuario)
+
+
+        # Evita KeyError caso o usuário não tenha uma dessas moedas
+        quantidade_btc = carteira.get("BTC", 0)
+        quantidade_eth = carteira.get("ETH", 0)
+        quantidade_doge = carteira.get("DOGE", 0)
+
+        # Obtém os preços das criptomoedas
+        preco_btc = self.crypto_prices.get("BTC", 1)
+        preco_eth = self.crypto_prices.get("ETH", 1)
+        preco_doge = self.crypto_prices.get("DOGE", 1)
+
+        # Calcula o valor total que o usuário tem em cada moeda (quantidade * preço atual)
+        valor_btc = quantidade_btc / preco_btc if preco_btc else 0
+        valor_eth = quantidade_eth / preco_eth if preco_eth else 0
+        valor_doge = quantidade_doge / preco_doge if preco_doge else 0
+
+        #emite uma menssagem dos preços atualizados
+        self.sio.emit('atualizar_valores_convertidos', {
+        'valor_btc': valor_btc,
+        'valor_eth': valor_eth,
+        'valor_doge': valor_doge
+        }, namespace='/investimentos')
+
         if request.method == 'GET':
-            return template('app/views/html/investir', investimentos=dados_usuario.investimentos)
+            return template('app/views/html/investir',
+                investimentos=dados_usuario.investimentos, 
+                usuario=dados_usuario.usuario, 
+                saldo=dados_usuario.saldo,
+                carteira=carteira,
+                precos=self.crypto_prices,
+                valor_btc=float(valor_btc),
+                valor_eth=float(valor_eth),
+                valor_doge=float(valor_doge))
+        
+        if request.method == 'POST':
+            data = request.json
+            print("Dados recebidos no POST:", data)
+            if not data:
+                response.status = 400
+                return {"erro": "Requisição inválida"}
 
-    def ws_investimentos(self,ws):
-        session_id = request.get_cookie('session_id')
+            moeda = data.get("moeda")
+            quantidade = data.get("quantidade")
 
-        if not session_id:
-            return redirect('/login')
+            if not moeda or not quantidade:
+                response.status = 400
+                return {"erro": "Dados incompletos"}
 
-        usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
-        if not usuario_autenticado:
-            return redirect('/login')
+            if self.model.atualizar_carteira(dados_usuario.usuario, moeda, quantidade):
+                response.status = 200
+                return {"mensagem": f"Compra de {quantidade} em {moeda} realizada com sucesso!"}
+            else:
+                response.status = 500
+                return {"erro": "Erro ao atualizar a carteira."}
 
-        self.ws_clients.add(ws)
-        try:
-            for msg in ws:
-                data = json.loads(msg)  # Aqui 'msg' é a mensagem recebida, convertida em JSON
+    def atualizar_valor_carteira(self, usuario):
+        # Recalcular o valor da carteira após a compra
+        carteira = self.model.buscar_carteira(usuario)
 
-            # Aqui verificamos se o tipo da mensagem é 'trade'
-                if data['type'] == 'trade':
-                    self.model.processar_trade(data, ws)  # Passa o dicionário 'data' para processar o trade
+        # Calcula o valor total das moedas no portfólio do usuário
+        quantidade_btc = carteira.get("BTC", 0)
+        quantidade_eth = carteira.get("ETH", 0)
+        quantidade_doge = carteira.get("DOGE", 0)
 
-             # Se desejar, pode adicionar mais tipos de mensagem aqui, como 'update' para enviar atualizações ao cliente
-                elif data['type'] == 'update':
-                    self.send_to_clients({'type': 'update', 'message': 'Atualização disponível!'})
-                    
-        except:
-            pass
-        finally:
-            self.ws_clients.remove(ws)
+        preco_btc = self.crypto_prices.get("BTC", 1)
+        preco_eth = self.crypto_prices.get("ETH", 1)
+        preco_doge = self.crypto_prices.get("DOGE", 1)
+
+        valor_btc = quantidade_btc / preco_btc if preco_btc else 0
+        valor_eth = quantidade_eth / preco_eth if preco_eth else 0
+        valor_doge = quantidade_doge / preco_doge if preco_doge else 0
+
+        # Emite a atualização de valores para o WebSocket
+        self.sio.emit('atualizar_valores_convertidos', {
+            'valor_btc': valor_btc,
+            'valor_eth': valor_eth,
+            'valor_doge': valor_doge
+        }, namespace='/investimentos')

@@ -1,5 +1,6 @@
 from app.controllers.datbase import Banco
 import uuid
+import random
 
 
 class Usuario:
@@ -20,13 +21,22 @@ class UsuarioModel:
         self.db = Banco()
         self.db.criar_tabela1()
         self.db.cria_tabela_depositos()
-        self.db.criar_tabela_trades()
+        self.db.criar_carteira()
 
     def adicionar_usuario(self, usuario, senha, email):
         senha_cripto = self.db.hash_senha(senha)
         session_id = self.db.gerar_session_id(usuario)
         self.db.adicionar_usuario(session_id, usuario, senha_cripto, email)
         return True
+
+    def buscar_carteira(self,usuario):
+        carteira = self.db.Obter_carteira_usuario(usuario)
+
+        if not carteira:
+            self.db.criar_carteira_usuario(usuario)
+            carteira_usuario = self.db.Obter_carteira_usuario(usuario)
+            return carteira_usuario
+        return carteira
 
     def autenticar_usuario(self, usuario, senha):
         dados_usuario = self.db.obter_dados_usuario(usuario) #vai retornar uma tupla com os dados do usuario (id [0], session_id[1], usuario[2], senha[3], email[4], saldo[5], fatura[6])
@@ -132,51 +142,26 @@ class UsuarioModel:
             self.db.registrar_operacoes(usuario, tipo, valor)
             return True
         return False
+
+    def saldo_para_investimentos(self, usuario, quantidade):# usuario pega dinheira da conta principal e deposita na pagina de investimentos
+        saldo = self.db.obter_saldo(usuario)
+        if quantidade > saldo:
+            return False
+        self.db.pagamento_com_saldo(usuario, quantidade)
+        self.db.deposito_saldo_disponivel(usuario, quantidade)
+        return True
+    
+    def compra_saldo_disponivel(self, usuario, quantidade): #usuario compra os ativos com o saldo disponivel
+        saldo = self.db.obter_saldo_disponivel(usuario)
+        if quatidade > saldo:
+            return False
+        self.db.compra_saldo_disponivel(usuario, quantidade)
+        return True
+
+
+
+    def atualizar_carteira(self,usuario, moeda , quantidade):
+        if self.db.atualizar_carteira(usuario, moeda, quantidade):
+            return True
+        return False
 #--------------------------------------------------------------------------
-#area de investimentos
-
-def enviar_para_clientes(self, data):
-        for client in self.ws_clients:
-            try:
-                client.send(json.dumps(data))
-            except:
-                pass
-
-def processar_trade(self, data, ws):
-
-    user_id = data['user_id']  # Acessa o ID do usuário
-    crypto = data['crypto']    # Acessa o nome da criptomoeda
-    amount = float(data['amount'])  # Acessa a quantidade de criptomoeda
-    action = data['action']    # Acessa a ação ('buy' ou 'sell')
-
-
-    saldo_investido = self.db.saldo_investido(usuario)
-    
-    if saldo_investido is None:
-        ws.send(json.dumps({'type': 'error', 'message': 'Usuário não encontrado'}))
-        return
-
-    if action == "buy":  # COMPRA
-        novo_saldo = saldo_investido + amount
-    elif action == "sell":  # VENDA
-        if saldo_investido < amount:
-            ws.send(json.dumps({'type': 'error', 'message': 'Saldo insuficiente'}))
-            return
-        novo_saldo = saldo_investido - amount
-    else:
-        ws.send(json.dumps({'type': 'error', 'message': 'Ação inválida'}))
-        return
-
-    # Atualizar saldo investido do usuário no banco
-    self.db.atualizar_saldo_investido(usuario, novo_saldo)
-
-    # Registrar o trade na tabela de trades
-    self.db.registrar_trade(usuario, crypto, quantia, action)
-
-    # Notificar todos os clientes sobre a atualização
-    self.enviar_para_clientes({'type': 'update', 'message': f"{usuario} {action} {quantia} {crypto}"})
-
-    
-
-    
-       

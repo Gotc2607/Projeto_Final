@@ -1,11 +1,24 @@
 from app.controllers.application import Application
-from bottle import Bottle, route, run, request, static_file
-from bottle import redirect, template, response
-from bottle_websocket import websocket, GeventWebSocketServer
+from app.controllers.ws_application import Ws_Application
+from bottle import Bottle, route, run, request, static_file, redirect, template, response
+import socketio
+from threading import Thread
+import eventlet
+import eventlet.wsgi
 
 
 app = Bottle()
-ctl = Application()
+
+ # Inicialização do WebSocket
+sio = socketio.Server(async_mode='eventlet')
+
+ws = Ws_Application(sio)
+ctl = Application(sio)
+
+sio_app = socketio.WSGIApp(sio, app) 
+
+Thread(target=ws.atualizar_precos, daemon=True).start()
+Thread(target=ws.atualizar_valores_convertidos, daemon=True).start()
 
 
 #-----------------------------------------------------------------------------
@@ -74,23 +87,35 @@ def logout():
 #-----------------------------------------------------------------------------
 #area de investimentos
 
-
 @app.route('/investimentos', method=['GET', 'POST'])
-def investimentos(info=None):
+def investimentos():
     return ctl.render('investimentos')
 
-@app.route('/ws/investimentos', apply=[websocket])
-def ws_investimentos(ws):
-    ctl.ws_investimentos(ws)
+# WebSocket - Atualizações de Investimentos
+@sio.on('connect', namespace='/investimentos')
+def conectar(sid, environ):
+    print(f'Usuário conectado ao WebSocket: {sid}')
+    sio.emit('atualizar_precos', ws.crypto_prices, room=sid, namespace='/investimentos')
 
-@app.route('/api/saldo_investido', method='GET')
-def saldo_investido(info=None):
-    return ctl.saldo_investido()
+@sio.on('comprar_moeda', namespace='/investimentos')
+def comprar_moeda(sid, data):
+    ws.comprar_moeda(data)
+
+    usuario = data.get('usuario')
+    carteira_atualizada = ws.Obter_carteira_usuario(usuario)
+    sio.emit('atualizar_carteira', carteira_atualizada, room=sid, namespace='/investimentos')
+
+@sio.on('atualizar_carteira')
+def atualizar_carteira(data):
+    usuario = data['usuario']
+    carteira = ws.Obter_carteira_usuario(usuario)  # Pegando os ativos atualizados do usuário
+    
+    sio.emit('carteira_atualizada', carteira, room=request.sid)  # Enviando atualização para o usuário
 
 
 #-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    db = Application()
-    run(app, host='0.0.0.0', port=8080, debug=True ,server=GeventWebSocketServer)
+    #db = Application()
+   eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 8080)), sio_app)
