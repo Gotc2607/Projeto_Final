@@ -10,7 +10,7 @@ class Banco:
         db_dir= os.path.join(base_dir, 'db')
         database_path = os.path.join(db_dir, 'Usuario.db')
 
-        self.conexao = sqlite3.connect(database_path)
+        self.conexao = sqlite3.connect(database_path, check_same_thread=False)
         self.cursor = self.conexao.cursor()
     
 
@@ -117,6 +117,7 @@ class Banco:
         self.cursor.execute("SELECT * FROM Usuario WHERE usuario = ?", (usuario,))
         print('dados do usuario obtidos')
         return self.cursor.fetchone() #[]
+
 
     def obter_saldo(self, usuario):
         """
@@ -243,6 +244,8 @@ class Banco:
     def Obter_carteira_usuario(self, usuario):
         self.cursor.execute("SELECT moeda, quantidade FROM carteira WHERE usuario = ?", (usuario,))
         resultado = self.cursor.fetchall()
+        carteira = {moeda: quantidade for moeda, quantidade in resultado}
+        
         return dict(resultado) if resultado else {}
 
     def atualizar_carteira(self, usuario, moeda, quantidade):
@@ -261,3 +264,14 @@ class Banco:
         
         self.conexao.commit()
         return True
+
+    def listar_usuarios(self):
+        """Retorna uma lista com todos os usuários e suas carteiras no banco de dados."""
+        query = """
+            SELECT u.id, u.usuario, u.email, u.saldo, c.moeda, c.quantidade
+            FROM Usuario u
+            LEFT JOIN carteira c ON u.usuario = c.usuario
+        """
+        self.cursor.execute(query)
+        usuarios = self.cursor.fetchall()
+        return usuarios

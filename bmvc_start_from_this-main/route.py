@@ -18,8 +18,6 @@ ctl = Application(sio)
 sio_app = socketio.WSGIApp(sio, app) 
 
 Thread(target=ws.atualizar_precos, daemon=True).start()
-Thread(target=ws.atualizar_valores_convertidos, daemon=True).start()
-
 
 #-----------------------------------------------------------------------------
 # Rotas:
@@ -91,27 +89,47 @@ def logout():
 def investimentos():
     return ctl.render('investimentos')
 
+@app.route('/comprar', method=['POST'])
+def comprar():
+    response_data = ws.comprar()
+    return response.json(response_data)
+
+
 # WebSocket - Atualizações de Investimentos
 @sio.on('connect', namespace='/investimentos')
 def conectar(sid, environ):
     print(f'Usuário conectado ao WebSocket: {sid}')
+    
+    # Emite os preços das criptos na hora da conexão
     sio.emit('atualizar_precos', ws.crypto_prices, room=sid, namespace='/investimentos')
+    
+    # Emite a carteira inicial para o usuário
+    usuario_atual = 'usuario_atual'  # Este valor pode vir do session_id ou de alguma outra forma
+    carteira_atualizada = ws.Obter_carteira_usuario(usuario_atual)
+    sio.emit('atualizar_carteira', carteira_atualizada, room=sid, namespace='/investimentos')
 
 @sio.on('comprar_moeda', namespace='/investimentos')
 def comprar_moeda(sid, data):
-    ws.comprar_moeda(data)
-
+    print(f'Comprar moeda com dados: {data}')
+    
     usuario = data.get('usuario')
+    moeda = data.get('moeda')
+    quantidade = data.get('quantidade')
+    
+    if not usuario or not moeda or not quantidade:
+        print("Dados incompletos")
+        return
+    
+    # Realiza a compra da moeda e emite as atualizações necessárias
+    ws.comprar_moeda(data, sid)
     carteira_atualizada = ws.Obter_carteira_usuario(usuario)
+    
+    # Emite a carteira atualizada para o cliente após a compra
     sio.emit('atualizar_carteira', carteira_atualizada, room=sid, namespace='/investimentos')
-
+    
 @sio.on('atualizar_carteira')
 def atualizar_carteira(data):
-    usuario = data['usuario']
-    carteira = ws.Obter_carteira_usuario(usuario)  # Pegando os ativos atualizados do usuário
-    
-    sio.emit('carteira_atualizada', carteira, room=request.sid)  # Enviando atualização para o usuário
-
+    return ws.atualizar_carteira(data)
 
 #-----------------------------------------------------------------------------
 
