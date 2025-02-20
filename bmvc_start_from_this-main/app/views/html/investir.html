@@ -1,129 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Investimentos</title>
-    <link rel="stylesheet" href="../../static/css/style_investimento.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Investimentos em Criptomoedas</title>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
 </head>
 <body>
-    <header>
-        <h1>Página de Investimentos</h1>
-    </header>
+    <h1>Preços das Criptomoedas</h1>
+    <ul id="precos"></ul>
     
-    <div class="container">
-        <div class="saldo">
-            <h1>Total em Investimentos</h1>
-            <h2>{{investimentos}}</h2>
-        </div>
+    <h2>Sua Carteira</h2>
+    <ul id="carteira"></ul>
     
-        <div class="content">
-            <div class="crypto-list">
-                <h2>Preços das Criptomoedas</h2>
-                <ul>
-                    <h1>Investimentos</h1>
-                    <p>Saldo disponível: <span id="saldo_usuario">{{saldo}}</span></p>
-                    
-                    <h2>Preços das Criptomoedas</h2>
-                    <ul>
-                        <li>Bitcoin (BTC): <span id="btc_price">{{carteira["BTC"]}}</span></li>
-                        <li>Ethereum (ETH): <span id="eth_price">{{carteira["ETH"]}}</span></li>
-                        <li>Dogecoin (DOGE): <span id="doge_price">{{carteira["DOGE"]}}</span></li>
-                    </ul>
-                </ul>
-            </div>
-
-            <div class="wallet">
-                <h2>Sua Carteira</h2>
-                <ul>
-                    <li>BTC: <span id="btc_balance">{{carteira["BTC"]}}</span> </li>
-                    <li>Bitcoin (BTC): <span id="btc_value">{{valor_btc}}</span></li>
-
-                    <li>ETH: <span id="eth_balance">{{carteira["ETH"]}}</span></li>
-                    <li>Ethereum (ETH): <span id="eth_value">{{valor_eth}}</span></li>
-
-                    <li>DOGE: <span id="doge_balance">{{carteira["DOGE"]}}</span></li>
-                    <li>Dogecoin (DOGE): <span id="doge_value">{{valor_doge}}</span></li>
-                </ul>
-            </div>
+    <h2>Comprar Criptomoeda</h2>
+    <label>Criptomoeda ID: <input type="number" id="cripto_id"></label>
+    <label>Quantidade: <input type="number" id="quantidade"></label>
+    <button onclick="comprarCripto()">Comprar</button>
     
-            <div class="actions">
-                <h2>Comprar/Vender Criptomoedas</h2>
-                <form id="compra-form">
-                    <label for="crypto-select">Selecione a Criptomoeda</label>
-            
-                    <p>Bitcoin (BTC)</p>
-                    <input type="number" id="quantidade_btc" placeholder="Digite o valor em R$">
-                    <button data-moeda="BTC">Comprar BTC</button>
-                    
-                    <p>Ethereum (ETH)</p>
-                    <input type="number" id="quantidade_eth" placeholder="Digite o valor em R$">
-                    <button data-moeda="ETH">Comprar ETH</button>
-                    
-                    <p>Dogecoin (DOGE)</p>
-                    <input type="number" id="quantidade_doge" placeholder="Digite o valor em R$">
-                    <button data-moeda="DOGE">Comprar DOGE</button>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <footer>
-        <p>&copy; 2025 Meu Banco. Todos os direitos reservados.</p>
-    </footer>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
-        var socket;
+        const usuarioId = 1;
+        const socket = io("http://localhost:8080");
 
-        document.addEventListener("DOMContentLoaded", function() {
-            const sessionId = getSessionIdFromCookies();
-            socket = io.connect('http://' + document.domain + ':' + location.port + '/investimentos', {
-                query: { session_id: sessionId }
-            });
-
-            socket.on("connect", function() {
-                console.log("Conectado com session_id:", sessionId);
-            });
-
-            socket.on('atualizar_precos', function(data) {
-                document.getElementById('btc_price').innerText = data.BTC.toFixed(2);
-                document.getElementById('eth_price').innerText = data.ETH.toFixed(2);
-                document.getElementById('doge_price').innerText = data.DOGE.toFixed(2);
-            });
-
-            socket.on('atualizar_valores_convertidos', function(data) {
-                document.getElementById('btc_value').innerText = data.valor_btc.toFixed(2);
-                document.getElementById('eth_value').innerText = data.valor_eth.toFixed(2);
-                document.getElementById('doge_value').innerText = data.valor_doge.toFixed(2);
-            });
-
-            socket.on('atualizar_saldo', function(data) {
-                document.getElementById('saldo_usuario').innerText = data.novoSaldo.toFixed(2);
-            });
-
-            document.querySelectorAll('.actions button').forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    let moeda = e.target.dataset.moeda;
-                    let quantidadeInputId = 'quantidade_' + moeda.toLowerCase();
-                    let quantidade = parseFloat(document.getElementById(quantidadeInputId).value);
-
-                    if (!quantidade || quantidade <= 0) {
-                        alert("Digite um valor válido para comprar.");
-                        return;
-                    }
-
-                    socket.emit('comprar_moeda', {
-                        usuario: 'usuario_atual',
-                        moeda: moeda,
-                        quantidade: quantidade
-                    });
+        function carregarPrecos() {
+            fetch("/precos")
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("precos").innerHTML = data.map(c => `<li>${c[0]}: $${c[1]}</li>`).join("");
                 });
+        }
+
+        function carregarCarteira() {
+            fetch(`/carteira/${usuarioId}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("carteira").innerHTML = data.map(c => `<li>${c[0]}: ${c[1]} (${c[2]})</li>`).join("");
+                });
+        }
+
+        function comprarCripto() {
+            const criptoId = document.getElementById("cripto_id").value;
+            const quantidade = document.getElementById("quantidade").value;
+            
+            fetch("/comprar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario_id: usuarioId, cripto_id: parseInt(criptoId), quantidade: parseFloat(quantidade) })
             });
+        }
+
+        socket.on("atualizacao_carteira", data => {
+            if (data.usuario_id === usuarioId) {
+                carregarCarteira();
+            }
         });
+
+        carregarPrecos();
+        carregarCarteira();
     </script>
 </body>
 </html>

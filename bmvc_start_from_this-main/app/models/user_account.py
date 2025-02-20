@@ -1,6 +1,9 @@
 from app.controllers.datbase import Banco
 import uuid
 import random
+import threading
+from time import sleep
+
 
 
 class Usuario:
@@ -22,6 +25,7 @@ class UsuarioModel:
         self.db.criar_tabela1()
         self.db.cria_tabela_depositos()
         self.db.criar_carteira()
+        self.crypto_prices = {"BTC": 567.047, "ETH": 15.490, "DOGE": 1.48}
 
     def adicionar_usuario(self, usuario, senha, email):
         senha_cripto = self.db.hash_senha(senha)
@@ -158,10 +162,24 @@ class UsuarioModel:
         self.db.compra_saldo_disponivel(usuario, quantidade)
         return True
 
-
-
-    def atualizar_carteira(self,usuario, moeda , quantidade):
-        if self.db.atualizar_carteira(usuario, moeda, quantidade):
-            return True
-        return False
 #--------------------------------------------------------------------------
+    def obter_precos(self):
+        preco_btc = self.crypto_prices["BTC"]
+        preco_eth = self.crypto_prices["ETH"]
+        preco_doge = self.crypto_prices["DOGE"]
+
+        return preco_btc, preco_eth, preco_doge
+
+    def obter_carteira_usuario(self, usuario):
+        carteira = self.db.obter_carteira_usuario(usuario)
+        if not carteira:
+            self.db.criar_carteira_usuario(usuario)
+            carteira = self.db.obter_carteira_usuario(usuario)
+            return carteira
+        return carteira
+
+
+        
+    def atualizar_carteira(self, usuario):
+        carteira = self.obter_carteira_usuario(usuario)
+        return carteira

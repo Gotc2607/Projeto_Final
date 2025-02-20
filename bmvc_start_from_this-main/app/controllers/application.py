@@ -27,7 +27,7 @@ class Application():
         }
         self.model = UsuarioModel()
         self.sio = sio
-        self.crypto_prices = {"BTC": 50000, "ETH": 3500, "DOGE": 0.10}  # Preços iniciais simulados
+        self.crypto_prices = {"BTC": 567.047, "ETH": 15.490, "DOGE": 1.48}  # Preços iniciais simulados
 
     def render(self,page, **kwargs):
        content = self.pages.get(page, self.helper)
@@ -285,9 +285,8 @@ class Application():
         if not usuario_autenticado:
             return redirect('/login')
 
-        # Pegando os ativos do usuário no banco de dados
-        carteira = self.model.buscar_carteira(dados_usuario.usuario)
-
+        # Obtendo os ativos do usuário no banco de dados via WsModel
+        carteira = self.model.obter_carteira_usuario(dados_usuario.usuario)
 
         # Evita KeyError caso o usuário não tenha uma dessas moedas
         quantidade_btc = carteira.get("BTC", 0)
@@ -295,20 +294,18 @@ class Application():
         quantidade_doge = carteira.get("DOGE", 0)
 
         # Obtém os preços das criptomoedas
-        preco_btc = self.crypto_prices.get("BTC", 1)
-        preco_eth = self.crypto_prices.get("ETH", 1)
-        preco_doge = self.crypto_prices.get("DOGE", 1)
+        preco_btc,preco_eth,preco_doge = self.model.obter_precos()
 
         # Calcula o valor total que o usuário tem em cada moeda (quantidade * preço atual)
-        valor_btc = quantidade_btc / preco_btc if preco_btc else 0
-        valor_eth = quantidade_eth / preco_eth if preco_eth else 0
-        valor_doge = quantidade_doge / preco_doge if preco_doge else 0
+        valor_btc = quantidade_btc / preco_btc
+        valor_eth = quantidade_eth / preco_eth
+        valor_doge = quantidade_doge / preco_doge
 
-        #emite uma menssagem dos preços atualizados
+        # Emite uma mensagem com os preços atualizados via WebSocket
         self.sio.emit('atualizar_valores_convertidos', {
-        'valor_btc': valor_btc,
-        'valor_eth': valor_eth,
-        'valor_doge': valor_doge
+            'valor_btc': valor_btc,
+            'valor_eth': valor_eth,
+            'valor_doge': valor_doge
         }, namespace='/investimentos')
 
         if request.method == 'GET':
@@ -317,11 +314,14 @@ class Application():
                 usuario=dados_usuario.usuario, 
                 saldo=dados_usuario.saldo,
                 carteira=carteira,
-                precos=self.crypto_prices,
+                preco_btc=preco_btc,
+                preco_eth=preco_eth,
+                preco_doge=preco_doge,
                 valor_btc=float(valor_btc),
                 valor_eth=float(valor_eth),
-                valor_doge=float(valor_doge))
-        
+                valor_doge=float(valor_doge)
+            )
+
         if request.method == 'POST':
             data = request.json
             print("Dados recebidos no POST:", data)
@@ -332,22 +332,45 @@ class Application():
             moeda = data.get("moeda")
             quantidade = data.get("quantidade")
 
-            if not moeda or not quantidade:
+            # Validação de entrada
+            if not moeda or quantidade is None:
                 response.status = 400
                 return {"erro": "Dados incompletos"}
 
-            if self.model.atualizar_carteira(dados_usuario.usuario, moeda, quantidade):
-                response.status = 200
-                return {"mensagem": f"Compra de {quantidade} em {moeda} realizada com sucesso!"}
-            else:
-                response.status = 500
-                return {"erro": "Erro ao atualizar a carteira."}
+            try:
+                quantidade = float(quantidade)
+                if quantidade <= 0:
+                    raise ValueError
+            except ValueError:
+                response.status = 400
+                return {"erro": "Quantidade inválida"}
+
+            # Chama o WsModel para processar a compra
+            resultado = self.model.comprar_moeda(dados_usuario.usuario, moeda, quantidade)
+
+            if "erro" in resultado:
+                response.status = 400
+                return resultado  # Retorna erro se houver
+
+            response.status = 200
+            return {"mensagem": f"Compra de {quantidade} {moeda} realizada com sucesso!"}
+
+    def atualizar_precos(self):
+        while True:
+            btc, eth, doge = self.model.obter_precos()
+            
+            btc += random.uniform(-5, 5)
+            eth += random.uniform(-0.5, 0.5)
+            doge += random.uniform(-0.1, 0.1)
+
+           
+            sleep(2)
+
 
     def atualizar_valor_carteira(self, usuario):
-        # Recalcular o valor da carteira após a compra
+        """Recalcula o valor total da carteira do usuário e emite atualização via WebSocket."""
         carteira = self.model.buscar_carteira(usuario)
 
-        # Calcula o valor total das moedas no portfólio do usuário
         quantidade_btc = carteira.get("BTC", 0)
         quantidade_eth = carteira.get("ETH", 0)
         quantidade_doge = carteira.get("DOGE", 0)
@@ -356,9 +379,9 @@ class Application():
         preco_eth = self.crypto_prices.get("ETH", 1)
         preco_doge = self.crypto_prices.get("DOGE", 1)
 
-        valor_btc = quantidade_btc / preco_btc if preco_btc else 0
-        valor_eth = quantidade_eth / preco_eth if preco_eth else 0
-        valor_doge = quantidade_doge / preco_doge if preco_doge else 0
+        valor_btc = quantidade_btc * preco_btc  
+        valor_eth = quantidade_eth * preco_eth  
+        valor_doge = quantidade_doge * preco_doge  
 
         # Emite a atualização de valores para o WebSocket
         self.sio.emit('atualizar_valores_convertidos', {

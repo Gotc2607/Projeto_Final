@@ -36,9 +36,23 @@ class Banco:
             tipo TEXT CHECK(tipo IN ('deposito', 'transferencia', 'pagamento')),
             valor REAL,
             data TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+            FOREIGN KEY (usuario_id) REFERENCES Usuarios(id)
         );
         ''')
+        self.conexao.commit()
+
+    def criar_carteira(self):
+        self.cursor.executescript("""
+
+        CREATE TABLE IF NOT EXISTS carteira (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER NOT NULL,
+            valor_btc REAL DEFAULT 0,
+            valor_eth REAL DEFAULT 0,
+            valor_doge REAL DEFAULT 0,
+            FOREIGN KEY (usuario_id) REFERENCES Usuario(id)
+        );
+        """)
         self.conexao.commit()
 
     def obter_depositos(self, usuario_id):
@@ -192,19 +206,11 @@ class Banco:
             return True
         return False
 #--------------------------------------------------------------------------
-    def criar_carteira(self):
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS carteira (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                usuario TEXT NOT NULL,
-                saldo_disponivel REAL DEFAULT 0,
-                moeda TEXT NOT NULL,
-                quantidade REAL DEFAULT 0,
-                UNIQUE(usuario, moeda)
-            )
-        """)
-        self.conexao.commit()
+    
 
+    def criar_carteira_usuario(self, usuario_id):
+        self.cursor.execute("INSERT INTO carteira (usuario_id) VALUES (?)", (usuario_id,))
+        self.conexao.commit()
     def obter_saldo_disponivel(self, usuario):
         self.cursor.execute("SELECT saldo_disponivel FROM carteira WHERE usuario = ?", (usuario,))
         return self.cursor.fetchone()[0]
@@ -222,56 +228,16 @@ class Banco:
         return False
 
 
-    def adicionar_carteira_usuario(self, usuario, moeda, quantidade):
-        self.cursor.execute("""INSERT INTO carteira (usuario, moeda, quantidade) VALUES (?,?,?)""",(usuario,moeda, quantidade))
-        self.conexao.commit()
     
-    def criar_carteira_usuario(self, usuario):
-    # Cria automaticamente uma carteira para o usuário se ele ainda não tiver uma.
-    
-        self.cursor.execute("SELECT COUNT(*) FROM carteira WHERE usuario = ?", (usuario,))
-        existe = self.cursor.fetchone()[0]
 
-        if not existe:
-        # Moedas disponíveis no sistema
-            moedas = ["BTC", "ETH", "DOGE"]
-            for moeda in moedas:
-                self.cursor.execute("INSERT INTO carteira (usuario, moeda, quantidade) VALUES (?, ?, ?)", (usuario, moeda, 0))
-        
-            self.conexao.commit()
-            print(f"Carteira criada para o usuário {usuario}")
-
-    def Obter_carteira_usuario(self, usuario):
-        self.cursor.execute("SELECT moeda, quantidade FROM carteira WHERE usuario = ?", (usuario,))
-        resultado = self.cursor.fetchall()
-        carteira = {moeda: quantidade for moeda, quantidade in resultado}
-        
-        return dict(resultado) if resultado else {}
-
-    def atualizar_carteira(self, usuario, moeda, quantidade):
-        carteira = self.Obter_carteira_usuario(usuario)
-        if moeda in carteira:
-            nova_quantidade = carteira[moeda] + quantidade
-            if nova_quantidade <= 0:
-                self.cursor.execute("DELETE FROM carteira WHERE usuario = ? AND moeda = ?", (usuario, moeda))
-                return 
-            else:
-                self.cursor.execute("UPDATE carteira SET quantidade = ? WHERE usuario = ? AND moeda = ?", (nova_quantidade, usuario, moeda))
-        else:
-            if quantidade > 0:
-                self.cursor.execute("INSERT INTO carteira (usuario, moeda, quantidade) VALUES (?, ?, ?)", (usuario, moeda, quantidade))
-
-        
+    def adicionar_cripto_carteira(self, usuario_id, cripto_id, quantidade):
+        self.cursor.execute("""
+        INSERT INTO carteira (usuario_id, cripto_id, quantidade)
+        VALUES (?, ?, ?)
+        ON CONFLICT(usuario_id, cripto_id) DO UPDATE SET quantidade = quantidade + excluded.quantidade
+        """, (usuario_id, cripto_id, quantidade))
         self.conexao.commit()
-        return True
 
-    def listar_usuarios(self):
-        """Retorna uma lista com todos os usuários e suas carteiras no banco de dados."""
-        query = """
-            SELECT u.id, u.usuario, u.email, u.saldo, c.moeda, c.quantidade
-            FROM Usuario u
-            LEFT JOIN carteira c ON u.usuario = c.usuario
-        """
-        self.cursor.execute(query)
-        usuarios = self.cursor.fetchall()
-        return usuarios
+    def obter_carteira_usuario(self, usuario_id):
+        self.cursor.execute("SELECT * FROM carteira WHERE usuario_id = ?", (usuario_id,))
+        return self.cursor.fetchall()

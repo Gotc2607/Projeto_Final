@@ -1,9 +1,13 @@
-// Conectar o socket na inicialização
 var socket;
 
 document.addEventListener("DOMContentLoaded", function() {
-
     const sessionId = getSessionIdFromCookies();  // Pegue o session_id do usuário
+    if (!sessionId) {
+        alert("Sessão expirada. Redirecionando para o login.");
+        window.location.href = "/login";  // Redireciona para login se session_id não existir
+        return;
+    }
+
     socket = io.connect('http://' + document.domain + ':' + location.port + '/investimentos', {
         query: { session_id: sessionId }  // Envia o session_id para o servidor
     });
@@ -11,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function() {
     socket.on("connect", function() {
         console.log("Conectado com session_id:", sessionId);
     });
-
 
     // Atualiza os preços das criptomoedas
     socket.on('atualizar_precos', function(data) {
@@ -22,21 +25,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Atualiza os valores das criptos convertidos em dinheiro
     socket.on('atualizar_valores_convertidos', function(data) {
-        document.getElementById('btc_value').innerText = data.valor_btc.toFixed(2);
-        document.getElementById('eth_value').innerText = data.valor_eth.toFixed(2);
-        document.getElementById('doge_value').innerText = data.valor_doge.toFixed(2);
+        document.getElementById('btc_value').innerText = data.BTC.toFixed(2);
+        document.getElementById('eth_value').innerText = data.ETH.toFixed(2);
+        document.getElementById('doge_value').innerText = data.DOGE.toFixed(2);
     });
 
     // Atualiza o saldo do usuário
     socket.on('atualizar_saldo', function(data) {
-        atualizarSaldoNaInterface(data.usuario, data.moeda, data.quantidade);
+        document.getElementById("saldo_usuario").innerText = data.saldo.toFixed(2);
     });
 
     // Atualiza a carteira do usuário
     socket.on('atualizar_carteira', function(data) {
-        document.getElementById('btc_balance').innerText = data.BTC;
-        document.getElementById('eth_balance').innerText = data.ETH;
-        document.getElementById('doge_balance').innerText = data.DOGE;
+        document.getElementById('btc_balance').innerText = data.BTC.toFixed(6);
+        document.getElementById('eth_balance').innerText = data.ETH.toFixed(6);
+        document.getElementById('doge_balance').innerText = data.DOGE.toFixed(6);
     });
 
     // Adiciona evento de clique nos botões de compra
@@ -48,6 +51,11 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+// Função para verificar saldo disponível
+function verificarSaldoDisponivel(saldoAtual, custoTotal) {
+    return saldoAtual >= custoTotal;
+}
+
 // Função para comprar moeda e atualizar saldo
 function comprarMoeda(event, moeda) {
     event.preventDefault();
@@ -55,50 +63,59 @@ function comprarMoeda(event, moeda) {
     let quantidadeInputId = "quantidade_" + moeda.toLowerCase();
     let quantidade = parseFloat(document.getElementById(quantidadeInputId).value);
 
-    if (!quantidade || quantidade <= 0) {
-        alert("Digite um valor válido para comprar.");
+    // Validação da quantidade inserida
+    if (!quantidade || quantidade <= 0 || quantidade > 1000) {  // Limita a compra para 1000 de cada moeda
+        alert("Digite um valor válido para comprar (maior que zero e menor que 1000).");
         return;
     }
 
-    let precoAtual = parseFloat(document.getElementById(moeda.toLowerCase() + "_price").innerText);
     let saldoElement = document.getElementById("saldo_usuario");
     let saldoAtual = parseFloat(saldoElement.innerText);
 
-    let custoTotal = quantidade;
+    let custoTotal = quantidade;  // Valor real da criptomoeda (pode ser ajustado conforme a cotação)
 
-    // Verifica se o usuário tem saldo suficiente
-    if (saldoAtual < custoTotal) {
+    if (!verificarSaldoDisponivel(saldoAtual, custoTotal)) {
         alert("Saldo insuficiente para essa compra.");
         return;
     }
+
+    let sessionId = getSessionIdFromCookies();
 
     // Atualiza o saldo imediatamente na interface
     let novoSaldo = saldoAtual - custoTotal;
     saldoElement.innerText = novoSaldo.toFixed(2);
 
+    // Exibe o indicador de carregamento
+    let botaoCompra = document.querySelector(`[data-moeda=${moeda}]`);
+    botaoCompra.disabled = true;
+    botaoCompra.innerText = "Processando...";
+
     // Envia requisição para comprar
     fetch('/comprar', {
         method: 'POST',
-        body: JSON.stringify({ usuario: 'usuario_atual', moeda: moeda, quantidade: quantidade }),
+        body: JSON.stringify({ session_id: sessionId, moeda: moeda, quantidade: quantidade }),
         headers: { 'Content-Type': 'application/json' }
     })
     .then(response => response.json())
     .then(data => {
         if (data.erro) {
             alert("Erro: " + data.erro);
-            // Se der erro, restaura o saldo antigo
             saldoElement.innerText = saldoAtual.toFixed(2);
         } else {
             alert("Compra realizada com sucesso!");
-            // Atualiza o saldo com o valor vindo do backend (caso precise corrigir)
             saldoElement.innerText = data.saldo_atualizado.toFixed(2);
         }
+        // Reabilita o botão de compra
+        botaoCompra.disabled = false;
+        botaoCompra.innerText = `Comprar ${moeda}`;
     })
     .catch(error => {
         console.error("Erro ao comprar moeda:", error);
         alert("Erro ao comprar moeda.");
-        // Se der erro, restaura o saldo antigo
         saldoElement.innerText = saldoAtual.toFixed(2);
+        // Reabilita o botão de compra
+        botaoCompra.disabled = false;
+        botaoCompra.innerText = `Comprar ${moeda}`;
     });
 }
 
@@ -109,13 +126,4 @@ function getSessionIdFromCookies() {
 
     console.log("Session ID recuperado:", sessionId);
     return sessionId;
-}
-
-
-// Função para atualizar o saldo do usuário na interface
-function atualizarSaldoNaInterface(usuario, moeda, quantidade) {
-    let saldoElement = document.getElementById("saldo_" + moeda.toLowerCase());
-    if (saldoElement) {
-        saldoElement.innerText = quantidade;
-    }
 }
