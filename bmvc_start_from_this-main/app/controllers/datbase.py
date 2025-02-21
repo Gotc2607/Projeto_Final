@@ -153,6 +153,12 @@ class Banco:
         self.conexao.commit()
         return True
 
+    def depositar(self, valor, usuario):
+        if self.cursor.execute("UPDATE Usuario SET saldo = saldo + ? WHERE usuario = ?", (valor, usuario)):
+            self.conexao.commit()
+            return True
+        return False
+
     def gerar_session_id(self, usuario):
         """
         Gera um session_id único para o usuário.
@@ -209,26 +215,48 @@ class Banco:
     
 
     def criar_carteira_usuario(self, usuario_id):
-        self.cursor.execute("INSERT INTO carteira (usuario_id) VALUES (?)", (usuario_id,))
+        self.cursor.execute("""
+            INSERT INTO carteira (usuario_id, valor_btc, valor_eth, valor_doge)
+            VALUES (?, 0, 0, 0)
+        """, (usuario_id,))
         self.conexao.commit()
-    def obter_saldo_disponivel(self, usuario):
-        self.cursor.execute("SELECT saldo_disponivel FROM carteira WHERE usuario = ?", (usuario,))
-        return self.cursor.fetchone()[0]
-
-    def deposito_saldo_disponivel(self, usuario, quantidade):
-        if self.cursor.execute(""" UPDATE carteira SET saldo_disponivel = saldo_disponivel + ? WHERE usuario = ?""", (quantidade, usuario)):
-            self.conexao.commit()
-            return True
-        return False
-
-    def compra_saldo_disponivel(self, usuario, quantidade):
-        if self.cursor.execute(""" UPDATE carteira SET saldo_disponivel = saldo_disponivel - ? WHERE usuario = ?""", (quantidade, usuario)):
-            self.conexao.commit()
-            return True
-        return False
-
 
     
+    def comprar_btc(self, usuario_id, valor):
+        self.cursor.execute("""
+            UPDATE carteira SET valor_btc = valor_btc + ? WHERE usuario_id = ?
+        """, (valor, usuario_id))
+        self.conexao.commit()
+
+    def comprar_eth(self, usuario_id, valor):
+        self.cursor.execute("""
+            UPDATE carteira SET valor_eth = valor_eth + ? WHERE usuario_id = ?
+        """, (valor, usuario_id))
+        self.conexao.commit()
+
+    def comprar_doge(self, usuario_id, valor):
+        self.cursor.execute("""
+            UPDATE carteira SET valor_doge = valor_doge + ? WHERE usuario_id = ?
+        """, (valor, usuario_id))
+        self.conexao.commit()
+
+    def vender_btc(self, usuario_id, valor):
+        self.cursor.execute("""
+            UPDATE carteira SET valor_btc = valor_btc - ? WHERE usuario_id = ?
+        """, (valor, usuario_id))
+        self.conexao.commit()
+
+    def vender_eth(self, usuario_id, valor):
+        self.cursor.execute("""
+            UPDATE carteira SET valor_eth = valor_eth - ? WHERE usuario_id = ?
+        """, (valor, usuario_id))
+        self.conexao.commit()
+
+    def vender_doge(self, usuario_id, valor):
+        self.cursor.execute("""
+            UPDATE carteira SET valor_doge = valor_doge - ? WHERE usuario_id = ?
+        """, (valor, usuario_id))
+        self.conexao.commit()
 
     def adicionar_cripto_carteira(self, usuario_id, cripto_id, quantidade):
         self.cursor.execute("""
@@ -239,5 +267,15 @@ class Banco:
         self.conexao.commit()
 
     def obter_carteira_usuario(self, usuario_id):
-        self.cursor.execute("SELECT * FROM carteira WHERE usuario_id = ?", (usuario_id,))
-        return self.cursor.fetchall()
+        self.cursor.execute("""
+            SELECT valor_btc, valor_eth, valor_doge FROM carteira WHERE usuario_id = ?
+        """, (usuario_id,))
+        carteira = self.cursor.fetchone()
+
+        if not carteira:
+            self.criar_carteira_usuario(usuario_id)  # Cria a carteira se não existir
+            return {"BTC": 0, "ETH": 0, "DOGE": 0}
+
+        return {"BTC": carteira[0], "ETH": carteira[1], "DOGE": carteira[2]}
+
+

@@ -2,6 +2,7 @@ from app.controllers.datbase import Banco
 import uuid
 import random
 import threading
+import time
 from time import sleep
 
 
@@ -25,7 +26,7 @@ class UsuarioModel:
         self.db.criar_tabela1()
         self.db.cria_tabela_depositos()
         self.db.criar_carteira()
-        self.crypto_prices = {"BTC": 567.047, "ETH": 15.490, "DOGE": 1.48}
+        self.crypto_prices = {"BTC": 567047, "ETH": 15498, "DOGE": 1.48}
 
     def adicionar_usuario(self, usuario, senha, email):
         senha_cripto = self.db.hash_senha(senha)
@@ -179,6 +180,45 @@ class UsuarioModel:
         return carteira
 
 
+    def comprar_ativo(self, usuario, ativo, quantidade):
+        carteira = self.obter_carteira_usuario(usuario)
+        preco_btc, preco_eth, preco_doge = self.obter_precos()
+        if ativo == 'BTC':
+            valor = quantidade / preco_btc
+            self.db.comprar_btc(usuario, valor)
+            self.db.pagamento_com_saldo(usuario, quantidade)
+            return True
+        elif ativo == 'ETH':
+            valor = quantidade / preco_eth
+            self.db.comprar_eth(usuario, valor)
+            self.db.pagamento_com_saldo(usuario, quantidade)
+            return True
+        elif ativo == 'DOGE':
+            valor = quantidade / preco_doge
+            self.db.comprar_doge(usuario, valor)
+            self.db.pagamento_com_saldo(usuario, quantidade)
+            return True
+        return False
+
+    def vender_ativo(self, usuario, ativo, quantidade):
+        carteira = self.obter_carteira_usuario(usuario)
+        preco_btc, preco_eth, preco_doge = self.obter_precos()
+        if ativo == 'BTC':
+            valor = quantidade / preco_btc
+            self.db.vender_btc(usuario, valor)
+            self.db.depositar(quantidade, usuario)
+            return True
+        elif ativo == 'ETH':
+            valor = quantidade / preco_eth
+            self.db.vender_eth(usuario, valor)
+            self.db.depositar(quantidade, usuario)
+            return True
+        elif ativo == 'DOGE':
+            valor = quantidade / preco_doge
+            self.db.vender_doge(usuario, valor)
+            self.db.depositar(quantidade, usuario)
+            return True
+        return False
         
     def atualizar_carteira(self, usuario):
         carteira = self.obter_carteira_usuario(usuario)

@@ -1,6 +1,6 @@
 from bottle import template, request, redirect, response
 from app.models.user_account import UsuarioModel
-from time import time, sleep
+from time import sleep, time
 import uuid
 import json
 import threading
@@ -27,8 +27,8 @@ class Application():
         }
         self.model = UsuarioModel()
         self.sio = sio
-        self.crypto_prices = {"BTC": 567.047, "ETH": 15.490, "DOGE": 1.48}  # Preços iniciais simulados
-
+        self.crypto_prices = {"BTC": 567047, "ETH": 15490, "DOGE": 1.48}  # Preços iniciais simulados
+    
     def render(self,page, **kwargs):
        content = self.pages.get(page, self.helper)
        return content(**kwargs)
@@ -40,7 +40,7 @@ class Application():
     def login(self):
         print("Método login chamado")
         if request.method == 'GET':
-            return template('app/views/html/login', time=int(time()))
+            return template('app/views/html/login', t=int(time()))
         
         if request.method == 'POST':
             usuario = request.forms.get('usuario')
@@ -48,7 +48,7 @@ class Application():
 
             if not usuario or not senha:
                 print("Campos obrigatórios não preenchidos")
-                return template('app/views/html/login', time=int(time()), erro="Preencha todos os campos.")
+                return template('app/views/html/login', t=int(time()), erro="Preencha todos os campos.")
             
             
            
@@ -59,10 +59,10 @@ class Application():
 
                 response.set_cookie('session_id', dados.session_id, httponly=True, secure=True, max_age=3600)
 
-                return template('app/views/html/tela_usuario', usuario=dados.usuario, email=dados.email, saldo=dados.saldo, fatura=dados.fatura, investimentos=dados.investimentos, time=int(time()))
+                return template('app/views/html/tela_usuario', usuario=dados.usuario, email=dados.email, saldo=dados.saldo, fatura=dados.fatura, investimentos=dados.investimentos, t=int(time()))
             else:
                 print("Usuário ou senha inválidos")
-                return template('app/views/html/login', time=int(time()), erro="Usuário ou senha inválidos.")
+                return template('app/views/html/login', t=int(time()), erro="Usuário ou senha inválidos.")
 
     def usuario(self):
         session_id = request.get_cookie('session_id')
@@ -72,13 +72,13 @@ class Application():
         
         usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if usuario_autenticado:
-            return template('app/views/html/tela_usuario', time=int(time()), usuario=dados_usuario.usuario, email=dados_usuario.email, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, investimentos=dados_usuario.investimentos)
+            return template('app/views/html/tela_usuario', t=int(time()), usuario=dados_usuario.usuario, email=dados_usuario.email, saldo=dados_usuario.saldo, fatura=dados_usuario.fatura, investimentos=dados_usuario.investimentos)
         
         return redirect('/login')
 
     def cadastro(self):
         if request.method == 'GET':
-            return template('app/views/html/cadastro', time=int(time()))
+            return template('app/views/html/cadastro', t=int(time()))
         if request.method == 'POST':
             usuario = request.forms.get('usuario')
             senha = request.forms.get('senha')
@@ -87,7 +87,7 @@ class Application():
             if self.model.adicionar_usuario(usuario, senha, email):
                 redirect('/login')
             else:
-                return template('app/views/html/cadastro', time=int(time()), erro="Erro ao cadastrar usuário")
+                return template('app/views/html/cadastro', t=int(time()), erro="Erro ao cadastrar usuário")
         
     def deposito(self):
         session_id = request.get_cookie('session_id')
@@ -100,19 +100,19 @@ class Application():
             return redirect('/login')
 
         if request.method == 'GET':
-            return template('app/views/html/deposito', time=int(time()))
+            return template('app/views/html/deposito', t=int(time()))
         
         if request.method == 'POST':
             valor = float(request.forms.get('valor'))
             senha = request.forms.get('senha')
             
             if valor <= 0:
-                return template('app/views/html/deposito', time=int(time()), erro="O valor deve ser maior que zero.")
+                return template('app/views/html/deposito', t=int(time()), erro="O valor deve ser maior que zero.")
                 
             if self.model.depositar(valor, senha, dados_usuario.usuario):
                 print(f"Depósito no valor de {valor} realizado com sucesso!")
                 return redirect('/usuario') 
-            return template('app/views/html/deposito', time=int(time()), erro="Erro ao realizar o depósito.")
+            return template('app/views/html/deposito', t=int(time()), erro="Erro ao realizar o depósito.")
 
     def perfil(self):
         session_id = request.get_cookie('session_id') #pega o cokkie da sessão
@@ -176,11 +176,11 @@ class Application():
             usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
 
             if valor <= 0:
-                return template('app/views/html/transferencia', time=int(time()), erro="O valor deve ser maior que zero.")
+                return template('app/views/html/transferencia', t=int(time()), erro="O valor deve ser maior que zero.")
 
             if self.model.transferencia(usuario_receptor, dados_usuario.usuario, valor, senha ):
                 return redirect('/usuario')
-            return template('app/views/html/transferencia', time=int(time()), erro="Erro ao realizar a transferencia.")
+            return template('app/views/html/transferencia', t=int(time()), erro="Erro ao realizar a transferencia.")
 
     def pagamentos(self):
         session_id = request.get_cookie('session_id')
@@ -193,7 +193,7 @@ class Application():
             return redirect('/login')
 
         if request.method == 'GET':
-            return template('app/views/html/pagamento', time=int(time()), saldo=dados_usuario.saldo)
+            return template('app/views/html/pagamento', t=int(time()), saldo=dados_usuario.saldo)
 
         if request.method == 'POST':
             valor = float(request.forms.get('valor'))
@@ -210,7 +210,7 @@ class Application():
             
             elif forma_pagamento == 'Saldo':
                 if valor > float(dados_usuario.saldo) or valor == 0.0:
-                    return template('app/views/html/pagamento', time=int(time()), erro="O valor deve ser maior que zero.", saldo=dados_usuario.saldo)
+                    return template('app/views/html/pagamento', t=int(time()), erro="O valor deve ser maior que zero.", saldo=dados_usuario.saldo)
                 if self.model.pagamento_com_saldo(dados_usuario.usuario, senha, valor ):
                     print('pagamento realizado')
                     return redirect('/usuario')
@@ -231,7 +231,7 @@ class Application():
             return redirect('/login')
 
         if request.method == 'GET':
-            return template('app/views/html/pagar-fatura', time=int(time()), fatura=dados_usuario.fatura,saldo=dados_usuario.saldo)
+            return template('app/views/html/pagar-fatura', t=int(time()), fatura=dados_usuario.fatura,saldo=dados_usuario.saldo)
 
 
         if request.method == 'POST':
@@ -250,7 +250,7 @@ class Application():
 
             elif forma_pagamento == 'Saldo':
                 if valor > float(dados_usuario.saldo) or valor == 0.0:
-                    return template('app/views/html/pagamento', time=int(time()), erro="O valor deve ser maior que zero.", fatura=dados_usuario.fatura,saldo=dados_usuario.saldo)
+                    return template('app/views/html/pagamento', t=int(time()), erro="O valor deve ser maior que zero.", fatura=dados_usuario.fatura,saldo=dados_usuario.saldo)
 
                 if self.model.pagamento_com_saldo(dados_usuario.usuario, senha, valor ):
                     if self.model.pagar_fatura(dados_usuario.usuario, senha, valor):
@@ -269,7 +269,7 @@ class Application():
         usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if not usuario_autenticado:
             return redirect('/login')
-        return template('app/views/html/cartao', time=int(time()), usuario=dados_usuario.usuario, fatura=dados_usuario.fatura)
+        return template('app/views/html/cartao', t=int(time()), usuario=dados_usuario.usuario, fatura=dados_usuario.fatura)
 
     def logout(self):
         response.delete_cookie('session_id')
@@ -285,31 +285,29 @@ class Application():
         if not usuario_autenticado:
             return redirect('/login')
 
-        # Obtendo os ativos do usuário no banco de dados via WsModel
-        carteira = self.model.obter_carteira_usuario(dados_usuario.usuario)
-
-        # Evita KeyError caso o usuário não tenha uma dessas moedas
-        quantidade_btc = carteira.get("BTC", 0)
-        quantidade_eth = carteira.get("ETH", 0)
-        quantidade_doge = carteira.get("DOGE", 0)
+        carteira = self.model.obter_carteira_usuario(dados_usuario.usuario) or {}
 
         # Obtém os preços das criptomoedas
-        preco_btc,preco_eth,preco_doge = self.model.obter_precos()
+        preco_btc, preco_eth, preco_doge = self.model.obter_precos()
 
         # Calcula o valor total que o usuário tem em cada moeda (quantidade * preço atual)
-        valor_btc = quantidade_btc / preco_btc
-        valor_eth = quantidade_eth / preco_eth
-        valor_doge = quantidade_doge / preco_doge
+        valor_btc = carteira.get("BTC", 0) * preco_btc
+        valor_eth = carteira.get("ETH", 0) * preco_eth
+        valor_doge = carteira.get("DOGE", 0) * preco_doge
 
-        # Emite uma mensagem com os preços atualizados via WebSocket
-        self.sio.emit('atualizar_valores_convertidos', {
+        # Emite uma mensagem com os preços e valores atualizados via WebSocket
+        self.sio.emit('atualizar_dados', {
+            'preco_btc': preco_btc,
+            'preco_eth': preco_eth,
+            'preco_doge': preco_doge,
             'valor_btc': valor_btc,
             'valor_eth': valor_eth,
-            'valor_doge': valor_doge
+            'valor_doge': valor_doge,
+            'carteira': carteira
         }, namespace='/investimentos')
 
         if request.method == 'GET':
-            return template('app/views/html/investir',
+            return template('app/views/html/investir', t=int(time()),
                 investimentos=dados_usuario.investimentos, 
                 usuario=dados_usuario.usuario, 
                 saldo=dados_usuario.saldo,
@@ -317,23 +315,24 @@ class Application():
                 preco_btc=preco_btc,
                 preco_eth=preco_eth,
                 preco_doge=preco_doge,
-                valor_btc=float(valor_btc),
-                valor_eth=float(valor_eth),
-                valor_doge=float(valor_doge)
+                valor_btc=valor_btc,
+                valor_eth=valor_eth,
+                valor_doge=valor_doge,
+                dados_carteira_json=json.dumps(carteira)
             )
 
         if request.method == 'POST':
             data = request.json
-            print("Dados recebidos no POST:", data)
             if not data:
                 response.status = 400
                 return {"erro": "Requisição inválida"}
 
             moeda = data.get("moeda")
             quantidade = data.get("quantidade")
+            operacao = data.get("operacao")  # "comprar" ou "vender"
 
-            # Validação de entrada
-            if not moeda or quantidade is None:
+            # Validação da entrada
+            if not moeda or quantidade is None or not operacao:
                 response.status = 400
                 return {"erro": "Dados incompletos"}
 
@@ -345,47 +344,28 @@ class Application():
                 response.status = 400
                 return {"erro": "Quantidade inválida"}
 
-            # Chama o WsModel para processar a compra
-            resultado = self.model.comprar_moeda(dados_usuario.usuario, moeda, quantidade)
-
-            if "erro" in resultado:
+            # Determina se será uma compra ou venda
+            if operacao == "comprar":
+                sucesso = self.model.comprar_ativo(dados_usuario.usuario, moeda, quantidade)
+            elif operacao == "vender":
+                sucesso = self.model.vender_ativo(dados_usuario.usuario, moeda, quantidade)
+            else:
                 response.status = 400
-                return resultado  # Retorna erro se houver
+                return {"erro": "Operação inválida"}
+
+            if not sucesso:
+                response.status = 400
+                return {"erro": f"Falha ao {operacao} {moeda}"}
+
+            # Atualiza a carteira do usuário após a operação
+            carteira_atualizada = self.model.obter_carteira_usuario(dados_usuario.usuario)
+
+            # Envia atualização para todos os clientes via WebSocket
+            self.sio.emit('atualizar_carteira', {
+                'carteira': carteira_atualizada
+            }, namespace='/investimentos')
 
             response.status = 200
-            return {"mensagem": f"Compra de {quantidade} {moeda} realizada com sucesso!"}
+            return {"mensagem": f"{operacao.capitalize()} de {quantidade} {moeda} realizada com sucesso!"}
 
-    def atualizar_precos(self):
-        while True:
-            btc, eth, doge = self.model.obter_precos()
-            
-            btc += random.uniform(-5, 5)
-            eth += random.uniform(-0.5, 0.5)
-            doge += random.uniform(-0.1, 0.1)
-
-           
-            sleep(2)
-
-
-    def atualizar_valor_carteira(self, usuario):
-        """Recalcula o valor total da carteira do usuário e emite atualização via WebSocket."""
-        carteira = self.model.buscar_carteira(usuario)
-
-        quantidade_btc = carteira.get("BTC", 0)
-        quantidade_eth = carteira.get("ETH", 0)
-        quantidade_doge = carteira.get("DOGE", 0)
-
-        preco_btc = self.crypto_prices.get("BTC", 1)
-        preco_eth = self.crypto_prices.get("ETH", 1)
-        preco_doge = self.crypto_prices.get("DOGE", 1)
-
-        valor_btc = quantidade_btc * preco_btc  
-        valor_eth = quantidade_eth * preco_eth  
-        valor_doge = quantidade_doge * preco_doge  
-
-        # Emite a atualização de valores para o WebSocket
-        self.sio.emit('atualizar_valores_convertidos', {
-            'valor_btc': valor_btc,
-            'valor_eth': valor_eth,
-            'valor_doge': valor_doge
-        }, namespace='/investimentos')
+    

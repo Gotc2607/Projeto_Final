@@ -1,4 +1,5 @@
 from app.controllers.application import Application
+from app.controllers.ws_application import preco
 from bottle import Bottle, route, run, request, static_file, redirect, template, response
 import socketio
 import json
@@ -11,10 +12,11 @@ app = Bottle()
 # Inicialização do WebSocket
 sio = socketio.Server(async_mode='eventlet')
 ctl = Application(sio)
+ws = preco(sio)
 
 sio_app = socketio.WSGIApp(sio, app)
 
-Thread(target=ctl.atualizar_precos).start()
+Thread(target=ws.atualizar_precos_periodicamente).start()
 
 #-----------------------------------------------------------------------------#
 # Servir arquivos estáticos
