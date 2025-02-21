@@ -26,11 +26,4 @@ class preco:
             preco_eth = preco_eth * fator_eth
             preco_doge = preco_doge * fator_doge
 
-            # Emite os preços atualizados para os clientes
-            self.sio.emit('atualizar_precos', {
-                'preco_btc': preco_btc,
-                'preco_eth': preco_eth,
-                'preco_doge': preco_doge
-            }, namespace='/investimentos')
-
             time.sleep(2)  # Atualiza a cada 2 segundos

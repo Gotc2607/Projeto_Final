@@ -224,8 +224,7 @@ class Application():
         session_id = request.get_cookie('session_id')
 
         if not session_id:
-            return redirect('/login')
-
+            return redirect('/login'
         usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if not usuario_autenticado:
             return redirect('/login')
@@ -290,21 +289,28 @@ class Application():
         # Obtém os preços das criptomoedas
         preco_btc, preco_eth, preco_doge = self.model.obter_precos()
 
+
+
         # Calcula o valor total que o usuário tem em cada moeda (quantidade * preço atual)
-        valor_btc = carteira.get("BTC", 0) * preco_btc
-        valor_eth = carteira.get("ETH", 0) * preco_eth
-        valor_doge = carteira.get("DOGE", 0) * preco_doge
+        valor_btc = carteira.get("BTC", 0) 
+        valor_eth = carteira.get("ETH", 0) 
+        valor_doge = carteira.get("DOGE", 0) 
+
+        format_btc = f"{valor_btc:.8f}"
+        format_eth = f"{valor_eth:.8f}"
+        format_doge = f"{valor_doge:.8f}"
 
         # Emite uma mensagem com os preços e valores atualizados via WebSocket
         self.sio.emit('atualizar_dados', {
             'preco_btc': preco_btc,
             'preco_eth': preco_eth,
             'preco_doge': preco_doge,
-            'valor_btc': valor_btc,
-            'valor_eth': valor_eth,
-            'valor_doge': valor_doge,
-            'carteira': carteira
+            'valor_btc': float(f"{valor_btc:.8f}"),  
+            'valor_eth': float(f"{valor_eth:.8f}"),
+            'valor_doge': float(f"{valor_doge:.8f}"),
+            'carteira': {moeda: float(f"{qtd:.8f}") for moeda, qtd in carteira.items()}  
         }, namespace='/investimentos')
+
 
         if request.method == 'GET':
             return template('app/views/html/investir', t=int(time()),
@@ -315,9 +321,9 @@ class Application():
                 preco_btc=preco_btc,
                 preco_eth=preco_eth,
                 preco_doge=preco_doge,
-                valor_btc=valor_btc,
-                valor_eth=valor_eth,
-                valor_doge=valor_doge,
+                valor_btc=format_btc,
+                valor_eth=format_eth,
+                valor_doge=format_doge,
                 dados_carteira_json=json.dumps(carteira)
             )
 

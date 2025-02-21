@@ -10,9 +10,10 @@ const socket = io("/investimentos");
 
         function atualizarCarteira(carteira) {
             document.getElementById("carteira").innerHTML = `
-                <li>BTC: ${carteira.BTC ? carteira.BTC.toFixed(3) : 0}</li>
-                <li>ETH: ${carteira.ETH ? carteira.ETH.toFixed(3) : 0}</li>
-                <li>DOGE: ${carteira.DOGE ? carteira.DOGE.toFixed(3) : 0}</li>
+                <li>BTC: ${carteira.BTC ? Number(carteira.BTC).toFixed(8) : "0.00000000"}</li>
+                <li>ETH: ${carteira.ETH ? Number(carteira.ETH).toFixed(8) : "0.00000000"}</li>
+                <li>DOGE: ${carteira.DOGE ? Number(carteira.DOGE).toFixed(8) : "0.00000000"}</li>
+
             `;
         }
 
@@ -44,5 +45,6 @@ const socket = io("/investimentos");
         });
 
         socket.on("atualizar_carteira", data => {
+            console.log("Dados recebidos do WebSocket:", data);
             atualizarCarteira(data.carteira);
         });
