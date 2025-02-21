@@ -1,16 +1,20 @@
-# Usar a imagem base do Python
+# Usar uma imagem Python leve
 FROM python:3.12-slim
 
-# Definir o diretório de trabalho
-WORKDIR /bmeta
+# Definir diretório de trabalho
+WORKDIR /app
 
-# Atualizar o pip e instalar as bibliotecas necessárias
-RUN pip install --upgrade pip && \
-    pip install bottle eventlet python-socketio reportlab jinja2 pytz filelock
+# Copiar apenas o arquivo de dependências para otimizar cache
+COPY requirements.txt .
 
-# Expor a porta que o aplicativo usa
+# Instalar as dependências
+RUN pip install --no-cache-dir -r requirements.txt
+
+# copiar todo o código da aplicação
+COPY . .
+
+# Expor a porta do aplicativo
 EXPOSE 8080
 
-# Comando para executar a aplicação
-CMD ["python3", "startserver.py"]
-
+# Comando para iniciar a aplicação
+CMD ["python", "route.py"]

@@ -224,7 +224,7 @@ class Application():
         session_id = request.get_cookie('session_id')
 
         if not session_id:
-            return redirect('/login'
+            return redirect('/login')
         usuario_autenticado, dados_usuario = self.model.verificar_session_id(session_id)
         if not usuario_autenticado:
             return redirect('/login')

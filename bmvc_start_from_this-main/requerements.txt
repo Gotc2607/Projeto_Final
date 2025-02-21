@@ -1,0 +1,13 @@
+bottle
+eventlet
+gevent
+socketio
+python-socketio
+python-engineio
+sqlite3
+bcrypt
+uuid
+random
+threading
+time
+json

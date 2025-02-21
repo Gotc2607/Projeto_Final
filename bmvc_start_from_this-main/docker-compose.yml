@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: meu_app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/app
+      - ./database:/app/database
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
+
+  db:
+    image: alpine
+    container_name: meu_db
+    volumes:
+      - ./database:/app/database
+    command: [ "sleep", "infinity" ]
+
